@@ -1,7 +1,70 @@
 # SETUP ########################################################################
+workspace()
 using Temporal
 using Indicators
 abstract Strategem
+
+# CALCS ########################################################################
+#TODO: control calc output names
+#TODO: allow for multiple parameters
+
+type Calc <: Strategem
+    fun::Function
+    input::Vector{Symbol}
+    par::Expr
+    rng::AbstractArray
+    lag::Bool
+    function Calc(fun::Function, input::Vector{Symbol}, par::Expr, rng::AbstractArray=0:0, lag::Bool=true)
+        new(fun, input, par, rng, lag)
+    end
+end
+Calc(fun::Function, input::Symbol, par::Expr, rng::AbstractArray=0:0, lag::Bool=true) = Calc(fun, [input], par, rng, lag)
+
+# SIGNALS ######################################################################
+type Signal <: Strategem
+    left::Symbol
+    fun::Function
+    right::Symbol
+end
+
+# RULES ########################################################################
+
+
+# SIMULATIONS ##################################################################
+type Strategy <: Strategem
+    universe::Dict
+    calcs::Dict
+    signals::Dict
+    # rules::Vector{Rule}
+end
+function backtest!(strat::Strategy)
+    for sym in keys(strat.universe)
+        print("Backtesting $sym...")
+        print("Running calculations...")
+        for c in keys(strat.calcs)
+            if strat.calcs[c].lag
+                out = lag(strat.calcs[c].fun(strat.universe[sym][strat.calcs[c].input]; strat.calcs[c].par.args))
+            else
+                out = strat.calcs[c].fun(strat.universe[sym][strat.calcs[c].input]; strat.calcs[c].par.args)
+            end
+            if size(out,2) == 1
+                out.fields = [c]
+            else
+                out.fields = map((s) -> Symbol("$(string(c))$(string(s))"), out.fields)
+            end
+            strat.universe[sym] = [strat.universe[sym] out]
+        end
+        print("Generating signals...")
+        # sigs = falses(strat.universe[sym])[:,1:length(strat.signals)]
+        # sigs.fields = map((s) -> Symbol(string(s)), keys(strat.signals))
+        for s in keys(strat.signals)
+            strat.universe[sym] = [strat.universe[sym] strat.signals[s].fun(strat.universe[sym][strat.signals[s].left], strat.universe[sym][strat.signals[s].right])]
+        end
+        strat.universe[sym].fields[end-length(strat.signals)+1:end] = map((k)->Symbol(k),keys(strat.signals))
+        print("Processing transactions...")
+        print("Done.\n")
+    end
+end
 
 # DATA #########################################################################
 tickers = ["XLY","XLP","XLE","XLF","XLV","XLI","XLB","XLK","XLU"]
@@ -12,82 +75,13 @@ for t in tickers
     print("Done.\n")
 end
 
-# CALCS ########################################################################
-type Parameter <: Strategem
-    val
-    pos::Int
-    kw::String
-    rng::AbstractArray
-    function Parameter(val, pos, kw, rng=0:0)
-        @assert pos >= 0 "`pos` argument must be non-negative."
-        if pos == 0 && kw == ""
-            error("If `pos` is zero, keyword argument name `kw` must be given.")
-        elseif pos != 0
-            kw = ""
-        end
-        new(val, pos, kw, rng)
-    end
-end
-type Calc <: Strategem
-    fld::Symbol
-    fun::Function
-    par::Parameter
-    name::Symbol
-    lag::Bool
-end
+calcs = Dict()
+calcs[:ShortMA] = Calc(ema, [:AdjClose], :(n=40), 20:5:80)
+calcs[:LongMA] = Calc(sma, [:AdjClose], :(n=200), 100:20:300)
 
+sigs = Dict()
+sigs[:Long] = Signal(:ShortMA, >, :LongMA)
+sigs[:Short] = Signal(:ShortMA, <, :LongMA)
+sigs[:Exit] = Signal(:ShortMA, ==, :LongMA)
 
-# RULES ########################################################################
-abstract Trade
-type Buy <: Trade
-    qty::Number
-    prc::Symbol
-end
-type Sell <: Trade
-    qty::Number
-    prc::Symbol
-end
-type Signal <: Strategem
-    left::Symbol
-    comparison::Function
-    right::Symbol
-    name::Symbol
-end
-
-
-# SIMULATIONS ##################################################################
-type Strategy <: Strategem
-    universe::Dict
-    calcs::Vector{Calc}
-    signals::Vector{Signal}
-    # rules::Vector{Rule}
-end
-
-function backtest!(strat::Strategy)
-    for sym in keys(strat.universe)
-        print("Backtesting $sym...")
-        print("Running calculations...")
-        for calc in strat.calcs
-            if calc.lag
-                strat.universe[sym] = [strat.universe[sym] lag(calc.fun(strat.universe[sym][calc.fld], calc.par.val))]
-            else
-                strat.universe[sym] = [strat.universe[sym] calc.fun(strat.universe[sym][calc.fld], calc.par.val)]
-            end
-            strat.universe[sym].fields[end] = calc.name
-        end
-        print("Generating signals...")
-        for sig in strat.signals
-            strat.universe[sym] = [strat.universe[sym] sig.comparison(strat.universe[sym][sig.left], strat.universe[sym][sig.right])]
-            strat.universe[sym].fields[end] = sig.name
-        end
-        print("Processing transactions...")
-        print("Done.\n")
-    end
-end
-
-short_ma = Calc(:AdjClose, sma, Parameter(40, 1, "", 20:80), :ShortMA, true)
-long_ma = Calc(:AdjClose, sma, Parameter(200, 1, "", 100:200), :LongMA, true)
-longsig = Signal(:ShortMA, >, :LongMA, :Long)
-sellsig = Signal(:ShortMA, <, :LongMA, :Short)
-exitsig = Signal(:ShortMA, ==, :LongMA, :Exit)
-strat = Strategy(universe, [short_ma,long_ma], [longsig,sellsig,exitsig])
+strat = Strategy(universe, calcs, sigs)
