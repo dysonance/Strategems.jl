@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/dysonance/Strategems.jl.svg?branch=master)](https://travis-ci.org/dysonance/Strategems.jl) [![Coverage Status](https://coveralls.io/repos/dysonance/Strategems.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/dysonance/Strategems.jl?branch=master) [![codecov.io](http://codecov.io/github/dysonance/Strategems.jl/coverage.svg?branch=master)](http://codecov.io/github/dysonance/Strategems.jl?branch=master)
+
 # Strategems
 **Strategems** is a Julia package aimed at simplifying and streamlining the process of developing, testing, and optimizing algorithmic/systematic trading strategies. This package is inspired in large part by the [quantstrat](http://www.rinfinance.com/agenda/2013/workshop/Humme+Peterson.pdf) package in [R](https://www.r-project.org/), adopting a similar general structure to the building blocks that make up a *strategy*.
 
@@ -17,9 +19,3 @@ The basic building blocks of a trading strategy are as follows:
 - **Strategies**: amalgamations of data, calculation instructions, signal generators, and logical rules that dictate trading decisions
     - *Backtests*: perform all calculations, generate all signals, and apply all rules to each asset in the universe over history
     - *Optimizations*: systematically perform a series of backtests using different inputs (i.e. parameter sets, stop loss levels, trading rules, portfolio management techniques)
-
-[![Build Status](https://travis-ci.org/dysonance/Strategems.jl.svg?branch=master)](https://travis-ci.org/dysonance/Strategems.jl)
-
-[![Coverage Status](https://coveralls.io/repos/dysonance/Strategems.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/dysonance/Strategems.jl?branch=master)
-
-[![codecov.io](http://codecov.io/github/dysonance/Strategems.jl/coverage.svg?branch=master)](http://codecov.io/github/dysonance/Strategems.jl?branch=master)
