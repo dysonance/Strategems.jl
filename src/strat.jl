@@ -1,5 +1,6 @@
 # SETUP ########################################################################
 workspace()
+using Base.Dates
 using Temporal
 using Indicators
 abstract Strategem
@@ -21,67 +22,45 @@ end
 Calc(fun::Function, input::Symbol, par::Expr, rng::AbstractArray=0:0, lag::Bool=true) = Calc(fun, [input], par, rng, lag)
 
 # SIGNALS ######################################################################
-type Signal <: Strategem
-    left::Symbol
-    fun::Function
-    right::Symbol
+type Order <: Strategem
+    qty::Int
+    lim::Bool
+    prc::Real
 end
-
-# RULES ########################################################################
-
+type Rule <: Strategem
+    when::Expr
+    exec::Order
+end
 
 # SIMULATIONS ##################################################################
-type Strategy <: Strategem
-    universe::Dict
-    calcs::Dict
-    signals::Dict
-    # rules::Vector{Rule}
+anydt(t::Vector{TimeType})::Bool = any(map((ti)->isa(ti,DateTime), t))
+todt!(t::Vector{TimeType}) = map!(DateTime, t)
+function getidx(universe::Dict{Symbol,TS})::Vector
+    t = Vector{TimeType}
+    @inbounds for (key,val) in universe
+        t = union(t, val.index)
+    end
+    anydt(t) ? todt!(t) : nothing
+    return t
 end
-function backtest!(strat::Strategy)
-    for sym in keys(strat.universe)
-        print("Backtesting $sym...")
-        print("Running calculations...")
-        for c in keys(strat.calcs)
-            if strat.calcs[c].lag
-                out = lag(strat.calcs[c].fun(strat.universe[sym][strat.calcs[c].input]; strat.calcs[c].par.args))
-            else
-                out = strat.calcs[c].fun(strat.universe[sym][strat.calcs[c].input]; strat.calcs[c].par.args)
-            end
-            if size(out,2) == 1
-                out.fields = [c]
-            else
-                out.fields = map((s) -> Symbol("$(string(c))$(string(s))"), out.fields)
-            end
-            strat.universe[sym] = [strat.universe[sym] out]
-        end
-        print("Generating signals...")
-        # sigs = falses(strat.universe[sym])[:,1:length(strat.signals)]
-        # sigs.fields = map((s) -> Symbol(string(s)), keys(strat.signals))
-        for s in keys(strat.signals)
-            strat.universe[sym] = [strat.universe[sym] strat.signals[s].fun(strat.universe[sym][strat.signals[s].left], strat.universe[sym][strat.signals[s].right])]
-        end
-        strat.universe[sym].fields[end-length(strat.signals)+1:end] = map((k)->Symbol(k),keys(strat.signals))
-        print("Processing transactions...")
-        print("Done.\n")
+type Strategy <: Strategem
+    universe::Dict{Symbol,TS}
+    calcs::Dict{Symbol,Calc}
+    rules::Dict{Symbol,Rule}
+    account::TS
+    portfolio::TS
+    function Strategy(universe, calcs, rules)
+        k = length(universe)
+        n = length(t)
+        t = getidx(universe)
+        acct = ts(zeros(Float64, (n,1)), t, :Account)  # time series of total account value
+        port = zeros(Int, (n,k), collect(keys(universe)))  # time series of qty held of each asset
     end
 end
-
-# DATA #########################################################################
-tickers = ["XLY","XLP","XLE","XLF","XLV","XLI","XLB","XLK","XLU"]
-universe = Dict()
-for t in tickers
-    print("Downloading data for $t...")
-    universe[t] = yahoo(t)
-    print("Done.\n")
+function addcalc!(strat::Strategy, name::Symbol, calc::Calc)
+    strat.calcs[name] = calc
+end
+function addrule!(strat::Strategy, name::Symbol, rule::Rule)
+    strat.rules[name] = rule
 end
 
-calcs = Dict()
-calcs[:ShortMA] = Calc(ema, [:AdjClose], :(n=40), 20:5:80)
-calcs[:LongMA] = Calc(sma, [:AdjClose], :(n=200), 100:20:300)
-
-sigs = Dict()
-sigs[:Long] = Signal(:ShortMA, >, :LongMA)
-sigs[:Short] = Signal(:ShortMA, <, :LongMA)
-sigs[:Exit] = Signal(:ShortMA, ==, :LongMA)
-
-strat = Strategy(universe, calcs, sigs)
