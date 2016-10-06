@@ -3,7 +3,7 @@ tickers = ["XLY","XLP","XLE","XLF","XLV","XLI","XLB","XLK","XLU"]
 universe = Dict()
 for t in tickers
     print("Downloading data for $t...")
-    # universe[t] = yahoo(t)
+    universe[t] = yahoo(t)
     print("Done.\n")
 end
 
