@@ -1,43 +1,63 @@
 # SETUP ########################################################################
-anydt(t::Vector{TimeType})::Bool = any(map((ti)->isa(ti,DateTime), t))
-todt!(t::Vector{TimeType}) = map!(DateTime, t)
-function initsigs(universe::Dict{Symbol,TS}, rules::Dict{Symbol,Rule})::Dict{Symbol,TS}
-    nrules = length(rules)
-    sigs = Dict{Symbol,TS}()
-    @inbounds for (key,val) in universe
-        sigs[key] = ts(falses((size(val,1),nrules)), val.index, collect(keys(rules)))
+# Concatenate Symbol types like with strings for easy field naming
+import Base: *, .*
+*(a::Symbol, b::Symbol) = Symbol("$(string(a))_$(string(b))")
+.*(a::Symbol, b::Vector{Symbol}) = map((sym)->a*sym, b)
+.*(a::Vector{Symbol}, b::Symbol) = map((sym)->sym*b, a)
+
+# STRATEGY TYPE DEFINITION #####################################################
+abstract Strategem
+type Result <: Strategem
+    calcs::Dict{Symbol,TS}
+    signals::Dict{Symbol,TS}
+    function Result(calcs=Dict{Symbol,TS}(), signals=Dict{Symbol,TS}())
+        new(calcs, signals)
     end
-    return sigs
-end
-function getidx(universe::Dict{Symbol,TS})::Vector
-    t = Vector{TimeType}
-    @inbounds for (key,val) in universe
-        t = union(t, val.index)
-    end
-    anydt(t) ? todt!(t) : nothing
-    return t
 end
 type Strategy <: Strategem
     universe::Dict{Symbol,TS}
-    calcs::Dict{Symbol,Calc}
-    rules::Dict{Symbol,Rule}
-    signals::Dict{Symbol,TS}
-    account::TS
-    portfolio::TS
-    function Strategy(universe, calcs, rules)
-        k = length(universe)
-        n = length(t)
-        t = getidx(universe)
-        acct = ts(zeros(Float64, (n,k)), t, :Account)  # time series of total account value
-        port = ts(zeros(Int, (n,k)), t, collect(keys(universe)))  # time series of qty held of each asset
-        sigs = initsigs(universe, rules)
+    calcs::Dict{Symbol,Expr}
+    signals::Dict{Symbol,Expr}
+    results::Result
+    function Strategy(universe=Dict{Symbol,TS}(), calcs=Dict{Symbol,Expr}(), signals=Dict{Symbol,Expr}(), results=Result())
+        new(universe, calcs, signals, results)
     end
 end
-function addcalc!(strat::Strategy, name::Symbol, calc::Calc)
-    strat.calcs[name] = calc
-    nothing
-end
-function addrule!(strat::Strategy, name::Symbol, rule::Rule)
-    strat.rules[name] = rule
+
+# Generate the signals
+function calculate!(strat::Strategy)
+    @inbounds for (sym, data) in strat.universe
+        print("Running calculations for asset $sym...")
+        @inbounds for (name, calc) in strat.calcs
+            tmparg = calc.args[2]
+            calc.args[2] = :data
+            tmp = eval(calc)
+            calc.args[2] = tmparg
+            # Adjust field names as appropriate
+            if size(tmp,2) == 1
+                tmp.fields = [name]
+            else
+                tmp.fields = name .* tmp.fields
+            end
+            # Add to strategy this asset's result set
+            if !haskey(strat.results.calcs, sym)
+                strat.results.calcs[sym] = tmp
+            else
+                strat.results.calcs[sym] = [strat.results.calcs[sym] tmp]
+            end
+        end
+        # Generate signals for this asset
+        @inbounds for (name, sig) in strat.signals
+            if !haskey(strat.results.signals, sym)
+                strat.results.signals[sym] =
+                eval(sig.args[1])(strat.results.calcs[sym][sig.args[2]], strat.results.calcs[sym][sig.args[3]])
+            else
+                strat.results.signals[sym] =
+                [strat.results.signals[sym] eval(sig.args[1])(strat.results.calcs[sym][sig.args[2]], strat.results.calcs[sym][sig.args[3]])]
+            end
+            strat.results.signals[sym].fields[end] = name
+        end
+        print("Done.\n")
+    end
     nothing
 end

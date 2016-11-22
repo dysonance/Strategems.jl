@@ -1,10 +1,17 @@
-# SIGNALS ######################################################################
+# ORDER TYPES ##################################################################
+#TODO: implement more order types
 type Order <: Strategem
-    qty::Int
-    lim::Bool
-    prc::Real
+    kind::Symbol
+    qty::Int64
+    prc::Float64
+    function Order(kind, qty, prc)
+        @assert kind in (:Market, :Limit)
+        new(kind, qty, prc)
+    end
 end
+
+# RULES ########################################################################
 type Rule <: Strategem
-    when::Expr
-    exec::Order
+    when::Symbol
+    order::Order
 end
