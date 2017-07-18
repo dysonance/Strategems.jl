@@ -50,5 +50,3 @@ function get_fun(calc)::Function
     return eval(f)
 end
 
-
-
