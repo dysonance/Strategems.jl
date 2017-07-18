@@ -40,10 +40,7 @@ end
 function init_blotter()::TS{Any,Date}
     B = ts{Any,Date}([:None 0], [Date(0)], [:Asset, :Quantity])
 end
-Blotter = init_blotter()
 
-#TODO: allow quantities to be determined by the portfolio/account object
-# (this probably means defining methods where the `q` argument is some type of expression or function
 function order!(B, a::Symbol, q::Number, dt::Date)::Void
     # B = [B; ts([a q], [dt], [:Asset,:Quantity])]
     B.values = [B.values; [a q]]
@@ -64,30 +61,15 @@ function get_total_position(B, a::Symbol)::Number
     return q
 end
 
-liquidate!(B, a::Symbol, dt::Date)::Void = order!(B, a, -get_total_position(B,a), dt)
+exitpos!(B, a::Symbol, dt::Date)::Void = order!(B, a, -get_total_position(B,a), dt)
 
-function tradefun(sig::BitArray, a::Symbol, dt::Date)::Void
+function tradefun(sig::Array{Bool}, a::Symbol)::Void
     if sig[1] && !sig[2]
-        order!(Blotter, a, 100, dt)
+        order!(Blotter, a, 100)
     elseif !sig[1] && sig[2]
-        order!(Blotter, a, -100, dt)
+        order!(Blotter, a, -100)
     else
-        liquidate!(Blotter, a, dt)
+        exit!(Blotter, a)
     end
 end
 
-# iterate through all signal sets, and update trade blotter for each observation
-#TODO: do this using generator syntax somehow
-idx_mkt = Vector{Date}()  # initialize vector of all dates with market data observed
-for (key,val) in Universe
-    idx_mkt = unique(sort([idx_mkt; val.index]))
-end
-
-for dt in idx_mkt
-    for (key,val) in Signals
-        try
-            sig = Bool.(val[dt].values)
-            tradefun(sig, key, dt)
-        end
-    end
-end

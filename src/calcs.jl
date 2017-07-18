@@ -1,3 +1,4 @@
+#=
 # CHECK THIS OUT
 # it could be possible to take a Julia expression
 # (like calling an EMA function w/ kw args)
@@ -24,4 +25,30 @@ y_out = eval(ex)
 s3 = "$(calc.args[1])(x, n=40)"
 ex = parse(s3)
 z_out = eval(ex)
+=#
+
+#TODO: handle indicators where last row could be a vector
+
+@doc """
+Generate function from a calculation given as an Expr
+
+*Example*
+
+```
+calc = :(ema(cl(X).values, n=200, wilder=false))
+fun = get_fun(calc)
+```
+""" ->
+function get_fun(calc)::Function
+    fun::Symbol = calc.args[1]
+    tgt = calc.args[2]
+    params::Vector{Expr} = calc.args[3:end]
+    arg_str::String = join(string.(params), ',')
+    # s::String = "$(calc.args[1])($(calc.args[2]), $(calc.args[3]))"
+    s::String = "$(fun)($(tgt), $(arg_str))"
+    f::Expr = parse("fun(X)::Float64 = try return $(s)[end]; catch return NaN; end")
+    return eval(f)
+end
+
+
 
