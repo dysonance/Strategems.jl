@@ -1,4 +1,4 @@
-type Blotter
+mutable struct Blotter
     orders::Vector{Order}
 end
 

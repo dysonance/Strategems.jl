@@ -1,6 +1,6 @@
 abstract Order
 
-type Transaction
+mutable struct Transaction
     asset::Asset
     qty::Real
     price::Real
@@ -9,7 +9,7 @@ type Transaction
 end
 
 #TODO: other order types (limit, stop, etc)
-type MarketOrder <: Order
+mutable struct MarketOrder <: Order
     timestamp::TimeType
     qty::Vector{Real}
     filled::Bool

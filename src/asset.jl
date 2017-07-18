@@ -1,11 +1,11 @@
-abstract Asset
+abstract type Asset end
 
 #TODO: add currency conversion logic
-type Currency <: Asset
+mutable struct Currency <: Asset
     asset_id::Symbol
 end
 
-type Equity <: Asset
+mutable struct Equity <: Asset
     asset_id::Symbol
     currency::Currency
     multiplier::Real
@@ -13,7 +13,7 @@ type Equity <: Asset
     data::TS
 end
 
-type Forward <: Asset
+mutable struct Forward <: Asset
     asset_id::Symbol
     currency::Currency
     multiplier::Real
@@ -22,7 +22,7 @@ type Forward <: Asset
     data::TS
 end
 
-type Option <: Asset
+mutable struct Option <: Asset
     asset_id::Symbol
     currency::Currency
     multiplier::Real
@@ -33,7 +33,7 @@ type Option <: Asset
     data::TS
 end
 
-type Bond <: Asset
+mutable struct Bond <: Asset
     asset_id::Symbol
     currency::Currency
     multiplier::Real

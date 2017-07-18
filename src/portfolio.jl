@@ -1,4 +1,4 @@
-type Portfolio
+mutable struct Portfolio
     assets::Vector{Asset}
     holdings::TS{Real}  # columns are assets, rows are holdings
     values::TS{Real}  # columns are assets, rows are position values

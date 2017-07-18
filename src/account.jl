@@ -1,12 +1,12 @@
 const ACCT_BAL_DEFAULT = 1e6
 
-type Ledger
+mutable struct Ledger
     credits::Vector{Float64}
     debits::Vector{Float64}
     is_interest::Vector{Bool}
 end
 
-type Account
+mutable struct Account
     currency::Currency
     balance::Float64
     ledger::Ledger
