@@ -1,6 +1,7 @@
 using Temporal, Indicators
 
 immutable struct Strategy
+    universe::Universe
     acct::Account
     portfolio::Portfolio
     blotter::Blotter

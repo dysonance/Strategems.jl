@@ -28,7 +28,6 @@ z_out = eval(ex)
 =#
 
 #TODO: handle indicators where last row could be a vector
-
 @doc """
 Generate function from a calculation given as an Expr
 
@@ -50,13 +49,34 @@ function get_fun(calc)::Function
     return eval(f)
 end
 
-immutable struct ParamSet
+#TODO: complete this logic
+@doc """
+Define parameter set used for indicator computations. Intended to allow ease of parameter optimization later on in strategy development.
+
+*Example*
+Suppose we want to define the key parameter we are using for an SMA indicator, namely, the lookback period, `n`. Further suppose we want to initially test the SMA with lookback of 200, but may want to see results later for n=10,20,30,...,400. Then we could express this desire with the following parameter set.
+
+```
+param = ParamSet(:n, 200, 10:10:400)
+```
+"""
+immutable ParamSet
     arg::Symbol  # name of the argument
     val::Any  # default value
     rng::AbstractArray  # the range of possible values (should default to 1-element vector containing `val`)
 end
 
-immutable struct Indicator
+#TODO: expand ParamSet or Indicator type to allow for multiple parameter adaptation
+
+@doc """
+Define an indicator to be calculated for all assets in the universe encompassed by a Strategy object. For each asset/symbol, define what function to run on the corresponding data, what input to pass to that function (defined as an expression intended to later evaluate with the variable `data` in scope), and the corresponding parameter set to use for the function.
+
+*Example*
+```
+ind = Indicator(sma, :(cl(data)), param)
+```
+"""
+immutable Indicator
     fun::Function
     input::Expr
     param::ParamSet
