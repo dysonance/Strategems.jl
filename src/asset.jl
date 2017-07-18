@@ -10,6 +10,7 @@ type Equity <: Asset
     currency::Currency
     multiplier::Real
     min_tick::Real
+    data::TS
 end
 
 type Forward <: Asset
@@ -17,7 +18,8 @@ type Forward <: Asset
     currency::Currency
     multiplier::Real
     min_tick::Real
-    maturity::TimeType
+    maturity::Dates.TimeType
+    data::TS
 end
 
 type Option <: Asset
@@ -25,9 +27,10 @@ type Option <: Asset
     currency::Currency
     multiplier::Real
     min_tick::Real
-    maturity::TimeType
+    maturity::Dates.TimeType
     strike::Float64
     style::Symbol
+    data::TS
 end
 
 type Bond <: Asset
@@ -35,6 +38,7 @@ type Bond <: Asset
     currency::Currency
     multiplier::Real
     min_tick::Real
+    data::TS
 end
 
 
