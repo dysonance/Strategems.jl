@@ -50,3 +50,15 @@ function get_fun(calc)::Function
     return eval(f)
 end
 
+immutable struct ParamSet
+    arg::Symbol  # name of the argument
+    val::Any  # default value
+    rng::AbstractArray  # the range of possible values (should default to 1-element vector containing `val`)
+end
+
+immutable struct Indicator
+    fun::Function
+    input::Expr
+    param::ParamSet
+end
+
