@@ -22,31 +22,32 @@ end
 #FIXME: giving all the same dictionaries in the final vector as the last element of the loop
 #FIXME: also check that the loop is doing what its intended to do
 
-function get_run_params(ps::ParameterSet)::Vector{Dict{Symbol,Any}}
+function get_run_params(ps::ParameterSet)#::Vector{Dict{Symbol,Any}}
     n_runs = get_n_runs(ps)
-    arg_dicts = Vector{Dict{Symbol,Any}}(n_runs)
-    # initialize holder dictionary to be changed at each iteration below
-    #     with the proper argument names in the key slots
-    tmp_dict = Dict{Symbol,Any}()
-    for arg_j in 1:ps.n_args
-        tmp_dict[ps.arg_names[arg_j]] = ps.arg_ranges[arg_j][1]
-    end
-    # initialize indexes for which value of each argument range will be taken
-    idx_args = ones(Int, ps.n_args)
-    rng_lens = [length(arg_range) for arg_range in ps.arg_ranges]
-    arg_dicts[1] = tmp_dict
     combos = Matrix{Any}(n_runs, ps.n_args)
     P = 1
-    for j in 1:1
+    for j in 1:ps.n_args
         n_vals = length(ps.arg_ranges[j])
-        n_reps = round(Int, n_runs/(n_vals*P))
-        rows = 1:n_reps
+        n_reps = ceil(Int, n_runs/(n_vals*P))
         for i in 1:n_vals
-            rows += n_reps
+            first_row = ceil(Int, n_vals/P)*(i-1)+1
+            step_by = ceil(Int, n_runs/(n_vals*n_reps))
+            #last_row = ceil(Int, n_runs/n_reps)
+            last_row = first_row + n_vals*step_by - 1
+            rows = first_row:step_by:last_row
             arg_val = ps.arg_ranges[j][i]
             combos[rows,j] = arg_val
         end
         P *= n_vals
+    end
+    #return combos
+    arg_dicts = Vector{Dict{Symbol,Any}}(n_runs)
+    for i in 1:size(combos,1)
+        tmp_dict = Dict{Symbol,Any}()
+        for j in 1:size(combos,2)
+            tmp_dict[ps.arg_names[j]] = combos[i,j]
+        end
+        arg_dicts[i] = tmp_dict
     end
     return arg_dicts
 end
