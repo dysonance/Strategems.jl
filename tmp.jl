@@ -1,75 +1,94 @@
+# load dependencies
 using Temporal, Indicators, Base.Dates
+charts = false
 
-# ==== INPUTS ====
-fromdate = "2014-05-04"
-thrudate = string(today())
-universe = ["CL1", "RB1", "NG1"]
-lagcalcs = true
+# define backtest setup
+from_date = today() - Year(10)
+thru_date = today()
+trade_qty = 10.0
+initial_balance = 1e6
+trade_field = :Open
+close_field = :Settle
 
-# ==== DATA ====
-Universe = Dict{Symbol,TS}()
-for asset in universe
-    Universe[Symbol(asset)] = quandl("CHRIS/CME_$(String(asset))")
-end
+# define indicator parameters
+ind_fun = Indicators.mama
+ind_vals(x::TS) = hl2(x)
+ind_args = (:fastlimit, 0.5,
+            :slowlimit, 0.05)
+ind_args_rng = (:fastlimit, 0.01:0.01:0.99,
+                :slowlimit, 0.01:0.01:0.99)
 
-# ==== FILTERS ====
+# download historical data
+X = quandl("CHRIS/CME_CL1", from=string(from_date), thru=string(thru_date))
+ind_out = ind_fun(ind_vals(X); ind_args)
 
+# initialize backtest variables
+N = size(X,1)
+go_long = crossover(ind_out[:MAMA].values, ind_out[:FAMA].values)
+go_short = crossunder(ind_out[:MAMA].values, ind_out[:FAMA].values)
+pnl = zeros(Float64, N)
+pos = zeros(Float64, N)
+in_price = NaN
+trade_price = X[:,trade_field].values
+close_price = X[:,close_field].values
 
-# ==== INDICATORS ====
-Calcs = Dict{Symbol,TS}()
-calcfun(X::TS)::TS = (m=[sma(cl(X),n=40) sma(cl(X),n=200)]; m.fields=[:SMA40,:SMA200]; return m)
-
-for (key,val) in Universe
-    Calcs[key] = calcfun(val)
-end
-if lagcalcs
-    for (key,val) in Calcs
-        Calcs[key] = lag(val)
+# run trading logic for base case (default indicator args)
+@inbounds for i in 2:N
+    if go_long[i-1]
+        pos[i] = trade_qty
+        pnl[i] = pos[i] * (close_price[i] - trade_price[i])
+    elseif go_short[i-1]
+        pos[i] = -trade_qty
+        pnl[i] = pos[i] * (close_price[i] - trade_price[i])
+    else
+        pos[i] = pos[i-1]
+        pnl[i] = pos[i] * (close_price[i]-close_price[i-1])
     end
 end
+# summarize results from backtest
+summary_ts = TS([Temporal.ohlc(X).values ind_out.values go_long go_short pos pnl cumsum(pnl)],
+                X.index,
+                vcat(Temporal.ohlc(X).fields, [:MAMA, :FAMA, :LongSignal, :ShortSignal, :Position, :PNL, :CumulativePNL]))
 
-# ==== SIGNALS ====
-Signals = Dict{Symbol,TS}()
-sigfun(X::TS)::TS = (sig=[X[:SMA40]>X[:SMA200] X[:SMA40]<X[:SMA200]]; sig.fields=[:Long,:Short]; return sig)
+# visualize backtest results
+using Plots
+ℓ = @layout [ a; b{0.33h} ]
+plotlyjs()
+plot(plot(summary_ts[:,vcat(close_field,ind_out.fields)], color=[:black :magenta :green]),
+     plot(summary_ts[:,end], color=:orange, fill=(0,:orange), fillalpha=0.5),
+     layout = ℓ)
 
-for (key,val) in Calcs
-    Signals[key] = sigfun(Calcs[key])
-end
 
-# ==== STRATEGIES ====
-function init_blotter()::TS{Any,Date}
-    B = ts{Any,Date}([:None 0], [Date(0)], [:Asset, :Quantity])
-end
+ps = ParameterSet([:fastlimit, :slowlimit], [0.5, 0.05])
+ps.arg_ranges = [0.01:0.01:0.99, 0.01:0.01:0.99]
+params = get_run_params(ps)
 
-function order!(B, a::Symbol, q::Number, dt::Date)::Void
-    # B = [B; ts([a q], [dt], [:Asset,:Quantity])]
-    B.values = [B.values; [a q]]
-    B.index = [B.index; dt]
-    return nothing
-end
-
-function get_total_position(B, a::Symbol)::Number
-    n = size(B, 1)
-    A = Symbol.(B[:Asset].values)
-    Q = Number.(B[:Quantity].values)
-    q = 0
-    @inbounds for i in 1:n
-        if A[i] == a
-            q += Q[i]
+#TODO: make this more sophisticated
+n_runs = get_n_runs(ps)
+cum_pnl = zeros(Float64, n_runs)
+@inbounds for j in 1:n_runs
+    println("Iteration $j/$n_runs ($(j/n_runs*100)%)")
+    ind_out = ind_fun(ind_vals(X); params[j]...)
+    # initialize backtest variables
+    N = size(X,1)
+    go_long = crossover(ind_out[:MAMA].values, ind_out[:FAMA].values)
+    go_short = crossunder(ind_out[:MAMA].values, ind_out[:FAMA].values)
+    pnl = zeros(Float64, N)
+    pos = zeros(Float64, N)
+    in_price = NaN
+    trade_price = X[:,trade_field].values
+    close_price = X[:,close_field].values
+    @inbounds for i in 2:N
+        if go_long[i-1]
+            pos[i] = trade_qty
+            pnl[i] = pos[i] * (close_price[i] - trade_price[i])
+        elseif go_short[i-1]
+            pos[i] = -trade_qty
+            pnl[i] = pos[i] * (close_price[i] - trade_price[i])
+        else
+            pos[i] = pos[i-1]
+            pnl[i] = pos[i] * (close_price[i]-close_price[i-1])
         end
     end
-    return q
+    cum_pnl[j] = sum(pnl)
 end
-
-exitpos!(B, a::Symbol, dt::Date)::Void = order!(B, a, -get_total_position(B,a), dt)
-
-function tradefun(sig::Array{Bool}, a::Symbol)::Void
-    if sig[1] && !sig[2]
-        order!(Blotter, a, 100)
-    elseif !sig[1] && sig[2]
-        order!(Blotter, a, -100)
-    else
-        exit!(Blotter, a)
-    end
-end
-
