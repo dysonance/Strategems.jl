@@ -28,20 +28,30 @@ function get_run_params(ps::ParameterSet)::Vector{Dict{Symbol,Any}}
     # initialize holder dictionary to be changed at each iteration below
     #     with the proper argument names in the key slots
     tmp_dict = Dict{Symbol,Any}()
-    for j in 1:ps.n_args
-        tmp_dict[ps.arg_names[j]] = ps.arg_ranges[j][1]
+    for arg_j in 1:ps.n_args
+        tmp_dict[ps.arg_names[arg_j]] = ps.arg_ranges[arg_j][1]
     end
     # initialize indexes for which value of each argument range will be taken
     idx_args = ones(Int, ps.n_args)
     rng_lens = [length(arg_range) for arg_range in ps.arg_ranges]
     arg_dicts[1] = tmp_dict
-    for j in 1:ps.n_args
-        for i in 2:n_runs
-            tmp_dict[ps.arg_names[j]] = ps.arg_ranges[j][idx_args[j]]
-            idx_args[j] += idx_args[j]==rng_lens[j] ? 1-idx_args[j] : 1
+    combos = Matrix{Any}(n_runs, ps.n_args)
+    P = 1
+    for j in 1:1
+        n_vals = length(ps.arg_ranges[j])
+        n_reps = round(Int, n_runs/(n_vals*P))
+        rows = 1:n_reps
+        for i in 1:n_vals
+            rows += n_reps
+            arg_val = ps.arg_ranges[j][i]
+            combos[rows,j] = arg_val
         end
-        arg_dicts[i] = tmp_dict
+        P *= n_vals
     end
     return arg_dicts
 end
 
+ps = ParameterSet([:fastlimit, :slowlimit], [0.5, 0.05])
+ps.arg_ranges = [0.01:0.01:0.99, 0.01:0.01:0.99]
+
+params = get_run_params(ps)
