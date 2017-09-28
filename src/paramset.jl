@@ -4,12 +4,15 @@ mutable struct ParameterSet
     arg_names::Vector{Symbol}
     arg_defaults::Vector
     arg_ranges::Vector
+    arg_types::Vector{<:Type}
     n_args::Int
     function ParameterSet(arg_names::Vector{Symbol},
                           arg_defaults::Vector,
                           arg_ranges::Vector=[x:x for x in arg_defaults])
         @assert length(arg_names) == length(arg_defaults) == length(arg_ranges)
-        return new(arg_names, arg_defaults, arg_ranges, length(arg_names))
+        @assert eltype.(arg_defaults) == eltype.(arg_ranges)
+        arg_types::Vector{<:Type} = eltype.(arg_defaults)
+        return new(arg_names, arg_defaults, arg_ranges, arg_types, length(arg_names))
     end
 end
 
@@ -57,6 +60,6 @@ end
 function show(io::IO, ps::ParameterSet)::Void
     print("Parameters:")
     @inbounds for i in 1:ps.n_args
-        print("\n    ($i) $(ps.arg_names[i])  →  $(ps.arg_defaults[i])  ∈  {$(string(ps.arg_ranges[i]))}")
+        print("\n    ($i) $(ps.arg_names[i])  →  $(ps.arg_defaults[i])  ∈  {$(string(ps.arg_ranges[i]))} :: $(ps.arg_types[i])")
     end
 end
