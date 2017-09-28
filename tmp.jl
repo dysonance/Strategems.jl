@@ -1,5 +1,5 @@
 # load dependencies
-using Temporal, Indicators, Base.Dates
+using Temporal, Indicators, Base.Dates, Plots
 charts = false
 
 # define backtest setup
@@ -50,15 +50,17 @@ summary_ts = TS([Temporal.ohlc(X).values ind_out.values go_long go_short pos pnl
                 X.index,
                 vcat(Temporal.ohlc(X).fields, [:MAMA, :FAMA, :LongSignal, :ShortSignal, :Position, :PNL, :CumulativePNL]))
 
-# visualize backtest results
-using Plots
-ℓ = @layout [ a; b{0.33h} ]
-plotlyjs()
-plot(plot(summary_ts[:,vcat(close_field,ind_out.fields)], color=[:black :magenta :green]),
-     plot(summary_ts[:,end], color=:orange, fill=(0,:orange), fillalpha=0.5),
-     layout = ℓ)
+if charts
+    # visualize backtest results
+    ℓ = @layout [ a; b{0.33h} ]
+    plotlyjs()
+    plot(plot(summary_ts[:,vcat(close_field,ind_out.fields)], color=[:black :magenta :green]),
+         plot(summary_ts[:,end], color=:orange, fill=(0,:orange), fillalpha=0.5),
+         layout = ℓ)
+end
 
-
+#TODO: integrate into package exports
+include("$(Pkg.dir("Strategems"))/paramset.jl")
 ps = ParameterSet([:fastlimit, :slowlimit], [0.5, 0.05])
 ps.arg_ranges = [0.01:0.01:0.99, 0.01:0.01:0.99]
 params = get_run_params(ps)
@@ -67,7 +69,7 @@ params = get_run_params(ps)
 n_runs = get_n_runs(ps)
 cum_pnl = zeros(Float64, n_runs)
 @inbounds for j in 1:n_runs
-    println("Iteration $j/$n_runs ($(j/n_runs*100)%)")
+    println("Iteration $j/$n_runs ($(round(j/n_runs*100, 2))%)")
     ind_out = ind_fun(ind_vals(X); params[j]...)
     # initialize backtest variables
     N = size(X,1)
@@ -91,4 +93,31 @@ cum_pnl = zeros(Float64, n_runs)
         end
     end
     cum_pnl[j] = sum(pnl)
+end
+
+if charts
+    plotlyjs()
+    histogram(cum_pnl, lab=["Cumulative PNL Distribution"], color=:cyan)
+    vline!([summary_ts.values[end,end]], linewidth=3, color=:red, lab=["Default Parameters"])
+end
+
+combos = get_param_combos(ps)
+optimization = [combos cum_pnl./initial_balance]
+
+x = ps.arg_ranges[1]
+y = ps.arg_ranges[2]
+z = optimization[:,3]
+Z = zeros(length(ps.arg_ranges[1]), length(ps.arg_ranges[2]))
+
+@inbounds for i in 1:length(x)
+    row_idx = combos[:,1] .== x[i]
+    @inbounds for j in 1:length(y)
+        col_idx = combos[:,2] .== y[j]
+        Z[i,j] = z[row_idx .* col_idx][1]
+    end
+end
+
+if charts
+    plotlyjs()
+    contour(x, y, Z)
 end
