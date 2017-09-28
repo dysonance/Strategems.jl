@@ -15,23 +15,18 @@ paramset = ParameterSet(arg_names, arg_defaults)
 @test paramset.arg_names == arg_names
 f(x; args...) = Indicators.mama(Temporal.hl2(x); args...)
 indicator = Indicator(f, paramset)
-indicators = generate_dict(universe, indicator)
-@test length(setdiff(assets, collect(keys(indicators)))) == 0
+
+# define signals
+signals = Dict{Symbol,Signal}(:GoLong=>Signal(:(MAMA ↑ FAMA)),
+                              :GoShort=>Signal(:(MAMA ↓ FAMA)))
 
 # define the trading rule
 #TODO: throwaway functions for now, still have to build definitions
 buy(asset::String, amount::Int) = 2+2
 sell(asset::String, amount::Int) = 2+2
 # long side logic
-long_trigger = :(MAMA ↑ FAMA)  # note the up arrow infix operator defined to alias crossover function
-long_action = :(buy(asset, 100))  # note the down arrow infix operator defined to alias crossunder function
-long_rule = Rule(long_trigger, long_action)
-# short side logic
-short_trigger = :(MAMA ↓ FAMA)
-short_action = :(sell(asset, 100))
-short_rule = Rule(short_trigger, short_action)
-# combine the rules
-rules = Dict{Symbol,Rule}(:GoLong=>long_rule, :GoShort=>short_rule)
+rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
+                          :EnterShort=>Rule(:GoShort, :(sell,asset,100)))
 
 #TODO: portfolio
 portfolio = :portfolio
@@ -42,7 +37,8 @@ results = :results
 
 # strategy object
 strat = Strategy(universe,
-                 indicators,
+                 indicator,
+                 signals,
                  rules,
                  portfolio,
                  account,
