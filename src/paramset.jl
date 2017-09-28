@@ -57,6 +57,14 @@ function get_run_params(ps::ParameterSet; n_runs::Int=get_n_runs(ps))::Vector{Di
     return arg_dicts
 end
 
+function generate_dict(ps::ParameterSet)::Dict{Symbol,Any}
+    out_dict = Dict{Symbol,Any}()
+    for j in 1:ps.n_args
+        out_dict[ps.arg_names[j]] = ps.arg_defaults[j]
+    end
+    return out_dict
+end
+
 function show(io::IO, ps::ParameterSet)::Void
     print("Parameters:")
     @inbounds for i in 1:ps.n_args
