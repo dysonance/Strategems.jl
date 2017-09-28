@@ -1,5 +1,5 @@
 # load dependencies
-using Temporal, Indicators, Base.Dates, Plots
+using Strategems, Temporal, Indicators, Base.Dates, Plots
 charts = false
 
 # define backtest setup
@@ -60,13 +60,12 @@ if charts
 end
 
 #TODO: integrate into package exports
-include("$(Pkg.dir("Strategems"))/paramset.jl")
-ps = ParameterSet([:fastlimit, :slowlimit], [0.5, 0.05])
-ps.arg_ranges = [0.01:0.01:0.99, 0.01:0.01:0.99]
-params = get_run_params(ps)
+paramset = ParameterSet([:fastlimit, :slowlimit], [0.5, 0.05])
+paramset.arg_ranges = [0.01:0.01:0.99, 0.01:0.01:0.99]
+params = get_run_params(paramset)
 
 #TODO: make this more sophisticated
-n_runs = get_n_runs(ps)
+n_runs = get_n_runs(paramset)
 cum_pnl = zeros(Float64, n_runs)
 @inbounds for j in 1:n_runs
     println("Iteration $j/$n_runs ($(round(j/n_runs*100, 2))%)")
@@ -101,13 +100,13 @@ if charts
     vline!([summary_ts.values[end,end]], linewidth=3, color=:red, lab=["Default Parameters"])
 end
 
-combos = get_param_combos(ps)
+combos = get_param_combos(paramset)
 optimization = [combos cum_pnl./initial_balance]
 
-x = ps.arg_ranges[1]
-y = ps.arg_ranges[2]
+x = paramset.arg_ranges[1]
+y = paramset.arg_ranges[2]
 z = optimization[:,3]
-Z = zeros(length(ps.arg_ranges[1]), length(ps.arg_ranges[2]))
+Z = zeros(length(paramset.arg_ranges[1]), length(paramset.arg_ranges[2]))
 
 @inbounds for i in 1:length(x)
     row_idx = combos[:,1] .== x[i]
