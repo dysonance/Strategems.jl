@@ -13,8 +13,10 @@ export
     ParameterSet, get_n_runs, get_param_combos, get_run_params, generate_dict,
     # indicators
     Indicator, calculate!,
+    # signals
+    Signal, prep_signal,
     # rules
-    Rule, prep_trigger, ↑, ↓,
+    Rule,
     # portfolios
     # accounting
     # strategies
@@ -23,6 +25,7 @@ export
 include("universe.jl")
 include("paramset.jl")
 include("indicator.jl")
+include("signal.jl")
 include("rule.jl")
 include("strategy.jl")
 
