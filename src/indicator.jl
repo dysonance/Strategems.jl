@@ -13,4 +13,15 @@ function calculate!(indicator::Indicator, input::TS)::Void
     return nothing
 end
 
+function generate_dict(universe::Universe, indicator::Indicator)::Dict{String,Indicator}
+    indicators = Dict{String,Indicator}()
+    for asset in universe.assets
+        local ind = Indicator(indicator.fun, indicator.paramset)
+        calculate!(ind, universe.data[asset])
+        indicators[asset] = ind
+    end
+    return indicators
+end
+
+
 #TODO: show method
