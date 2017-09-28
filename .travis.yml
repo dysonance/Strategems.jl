@@ -4,16 +4,15 @@ os:
   - linux
   - osx
 julia:
-  - release
+  - 0.6
   - nightly
+matrix:
+  - allow_failures: nightly
 notifications:
   email: false
-# uncomment the following lines to override the default test script
-#script:
-#  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-#  - julia -e 'Pkg.clone(pwd()); Pkg.build("Strategems"); Pkg.test("Strategems"; coverage=true)'
 after_success:
   # push coverage results to Coveralls
   - julia -e 'cd(Pkg.dir("Strategems")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
   # push coverage results to Codecov
   - julia -e 'cd(Pkg.dir("Strategems")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+
