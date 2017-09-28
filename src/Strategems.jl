@@ -7,13 +7,23 @@ using Indicators
 using RecipesBase
 
 export
+    # universe definitions
+    Universe, gather!,
     # parameter sets
-    ps, get_n_runs, get_param_combos, get_run_params
+    ParameterSet, get_n_runs, get_param_combos, get_run_params, generate_dict,
     # indicators
-    # strategies
+    Indicator, calculate!,
+    # rules
+    Rule, prep_trigger, ↑, ↓,
     # portfolios
     # accounting
+    # strategies
+    Strategy
 
+include("universe.jl")
 include("paramset.jl")
+include("indicator.jl")
+include("rule.jl")
+include("strategy.jl")
 
 end
