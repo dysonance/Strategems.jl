@@ -1,3 +1,5 @@
+import Base.show
+
 mutable struct ParameterSet
     arg_names::Vector{Symbol}
     arg_defaults::Vector
@@ -52,3 +54,9 @@ function get_run_params(ps::ParameterSet; n_runs::Int=get_n_runs(ps))::Vector{Di
     return arg_dicts
 end
 
+function show(io::IO, ps::ParameterSet)::Void
+    print("Parameters:")
+    @inbounds for i in 1:ps.n_args
+        print("\n    ($i) $(ps.arg_names[i])  →  $(ps.arg_defaults[i])  ∈  {$(string(ps.arg_ranges[i]))}")
+    end
+end
