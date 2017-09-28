@@ -18,7 +18,7 @@ export
     # portfolios
     # accounting
     # strategies
-    Strategy
+    Strategy, generate_trades
 
 include("universe.jl")
 include("paramset.jl")
