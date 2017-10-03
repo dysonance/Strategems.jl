@@ -5,7 +5,7 @@ Type and methods to simplify data sourcing and management of the universe of tra
 const SEPARATORS = ['/', '_', '.']
 
 function guess_tickers(assets::Vector{String})::Vector{Symbol}
-    tickers = Symbol.([Temporal.namefix(split(asset, SEPARATORS)[end]) for asset in universe.assets])
+    tickers = Symbol.([Temporal.namefix(split(asset, SEPARATORS)[end]) for asset in assets])
     @assert tickers == unique(tickers)  "Non-unique ticker symbols found in universe"
     return tickers
 end
