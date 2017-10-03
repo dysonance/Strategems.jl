@@ -21,7 +21,7 @@ export
     # order
     AbstractOrder, MarketOrder, LimitOrder, StopOrder, buy, sell, liquidate,
     # strategies
-    Strategy, generate_trades, generate_trades!, backtest
+    Strategy, generate_trades, generate_trades!, backtest, backtest!
 
 include("universe.jl")
 include("paramset.jl")

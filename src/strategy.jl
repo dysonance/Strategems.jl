@@ -36,11 +36,6 @@ function generate_trades!(strat::Strategy)::Void
     return nothing
 end
 
-#TODO: create an order type to handle this logic
-function buy!(strat::Strategy, asset::String, quantity::Number, price::Symbol)::Void
-    return nothing
-end
-
 function backtest(strat::Strategy, px_trade::Symbol=:Open, px_close::Symbol=:Settle)::Dict{String,TS}
     @assert haskey(strat.results, "Trades") "No trades generated for strategy - must run `generate_trades!` first."
     result = Dict{String,TS}()
@@ -78,4 +73,9 @@ function backtest(strat::Strategy, px_trade::Symbol=:Open, px_close::Symbol=:Set
         result[asset] = summary_ts
     end
     return result
+end
+
+function backtest!(strat::Strategy, px_trade::Symbol=:Open, px_close::Symbol=:Settle)::Void
+    strat.results["Backtest"] = backtest(strat, px_trade, px_close)
+    return nothing
 end

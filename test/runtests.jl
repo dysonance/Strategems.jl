@@ -27,5 +27,5 @@ rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
 # strategy object
 strat = Strategy(universe, indicator, signals, rules)
 generate_trades!(strat)
-results = backtest(strat)
-@test length(setdiff(collect(keys(results)), universe.assets)) == 0
+backtest!(strat)
+@test length(setdiff(collect(keys(strat.results["Backtest"])), universe.assets)) == 0
