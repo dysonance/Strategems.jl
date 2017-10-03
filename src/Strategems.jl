@@ -4,7 +4,6 @@ module Strategems
 using Base.Dates
 using Temporal
 using Indicators 
-using RecipesBase
 
 export
     # universe definitions
@@ -19,6 +18,8 @@ export
     Rule,
     # portfolios
     Portfolio,#, update_portfolio!,
+    # order
+    AbstractOrder, MarketOrder, LimitOrder, StopOrder, buy, sell, liquidate,
     # strategies
     Strategy, generate_trades, generate_trades!, backtest
 
@@ -28,6 +29,7 @@ include("indicator.jl")
 include("signal.jl")
 include("rule.jl")
 include("portfolio.jl")
+include("orders.jl")
 include("strategy.jl")
 
 end
