@@ -7,17 +7,13 @@ mutable struct Strategy
     indicators::Dict{String,Indicator}
     signals::Dict{Symbol,Signal}
     rules::Dict{Symbol,Rule}
-    portfolio
-    account
-    results
+    portfolio::Portfolio
     function Strategy(universe::Universe,
                       indicator::Indicator,
                       signals::Dict{Symbol,Signal},
                       rules::Dict{Symbol,Rule},
-                      portfolio,
-                      account,
-                      results)
-        return new(universe, generate_dict(universe, indicator), signals, rules, portfolio, account, results)
+                      portfolio::Portfolio=Portfolio(universe))
+        return new(universe, generate_dict(universe, indicator), signals, rules, portfolio)
     end
 end
 

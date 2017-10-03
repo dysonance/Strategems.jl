@@ -28,20 +28,7 @@ sell(asset::String, amount::Int) = 2+2
 rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
                           :EnterShort=>Rule(:GoShort, :(sell,asset,100)))
 
-#TODO: portfolio
-portfolio = :portfolio
-#TODO: account
-account = :account
-#TODO: results
-results = :results
-
 # strategy object
-strat = Strategy(universe,
-                 indicator,
-                 signals,
-                 rules,
-                 portfolio,
-                 account,
-                 results)
+strat = Strategy(universe, indicator, signals, rules)
 
 trades = generate_trades(strat)
