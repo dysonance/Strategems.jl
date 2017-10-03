@@ -17,7 +17,7 @@ mutable struct Portfolio
     end
 end
 
-function update_portfolio!(portfolio::Portfolio, order::Order, universe::Universe)
-    i = findfirst(portfolio.idx .> order.time)
-    quantity[i]
-end
+#function update_portfolio!(portfolio::Portfolio, order::Order, universe::Universe)
+#    i = findfirst(portfolio.idx .> order.time)
+#    quantity[i]
+#end

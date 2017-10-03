@@ -18,7 +18,7 @@ export
     # rules
     Rule,
     # portfolios
-    Portfolio, update_portfolio!,
+    Portfolio,#, update_portfolio!,
     # accounting
     # strategies
     Strategy, generate_trades
