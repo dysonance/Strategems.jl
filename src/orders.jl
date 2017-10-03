@@ -2,7 +2,7 @@
 types and methods to facilitate the interaction between orders, rules, and portfolios
 =#
 
-abstract AbstractOrder
+abstract type AbstractOrder end
 
 struct MarketOrder <: AbstractOrder
     asset::String

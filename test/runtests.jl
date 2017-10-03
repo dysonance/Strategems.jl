@@ -21,10 +21,6 @@ signals = Dict{Symbol,Signal}(:GoLong=>Signal(:(MAMA ↑ FAMA)),
                               :GoShort=>Signal(:(MAMA ↓ FAMA)))
 
 # define the trading rule
-#TODO: throwaway functions for now, still have to build order types and definitions
-buy(asset::String, amount::Int) = 2+2
-sell(asset::String, amount::Int) = 2+2
-# long side logic
 rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
                           :EnterShort=>Rule(:GoShort, :(sell,asset,100)))
 
