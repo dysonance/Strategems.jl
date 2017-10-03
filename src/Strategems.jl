@@ -8,7 +8,7 @@ using RecipesBase
 
 export
     # universe definitions
-    Universe, gather!,
+    Universe, gather!, get_overall_index,
     # parameter sets
     ParameterSet, get_n_runs, get_param_combos, get_run_params, generate_dict,
     # indicators
