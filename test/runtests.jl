@@ -21,7 +21,7 @@ signals = Dict{Symbol,Signal}(:GoLong=>Signal(:(MAMA ↑ FAMA)),
                               :GoShort=>Signal(:(MAMA ↓ FAMA)))
 
 # define the trading rule
-#TODO: throwaway functions for now, still have to build definitions
+#TODO: throwaway functions for now, still have to build order types and definitions
 buy(asset::String, amount::Int) = 2+2
 sell(asset::String, amount::Int) = 2+2
 # long side logic
@@ -32,3 +32,4 @@ rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
 strat = Strategy(universe, indicator, signals, rules)
 generate_trades!(strat)
 results = backtest(strat)
+@test length(setdiff(collect(keys(results)), universe.assets)) == 0
