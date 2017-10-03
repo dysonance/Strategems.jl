@@ -18,6 +18,7 @@ export
     # rules
     Rule,
     # portfolios
+    Portfolio, update_portfolio!,
     # accounting
     # strategies
     Strategy, generate_trades
@@ -27,6 +28,7 @@ include("paramset.jl")
 include("indicator.jl")
 include("signal.jl")
 include("rule.jl")
+include("portfolio.jl")
 include("strategy.jl")
 
 end
