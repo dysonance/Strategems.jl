@@ -41,7 +41,7 @@ function buy!(strat::Strategy, asset::String, quantity::Number, price::Symbol)::
     return nothing
 end
 
-function run(strat::Strategy, px_trade::Symbol=:Open, px_close::Symbol=:Settle)::Dict{String,TS}
+function backtest(strat::Strategy, px_trade::Symbol=:Open, px_close::Symbol=:Settle)::Dict{String,TS}
     @assert haskey(strat.results, "Trades") "No trades generated for strategy - must run `generate_trades!` first."
     result = Dict{String,TS}()
     for asset in strat.universe.assets
@@ -50,9 +50,7 @@ function run(strat::Strategy, px_trade::Symbol=:Open, px_close::Symbol=:Settle):
         asset_trades = trades[asset]
         N = size(asset_trades, 1)
         summary_ts = [strat.universe.data[asset] asset_trades]
-        # add performance columns
         #TODO: add setindex! method for TS objects using Symbol and Vector to assign inplace
-        summary_ts = [summary_ts TS(zeros(N, 2), summary_ts.index)]
         #TODO: generalize this logic to incorporate order types
         #FIXME: generalize this logic to use the actual rules (this is a temporary quickfix)
         trade_price = summary_ts[px_trade].values
@@ -62,10 +60,10 @@ function run(strat::Strategy, px_trade::Symbol=:Open, px_close::Symbol=:Settle):
         do_trade = false
         for i in 2:N
             for rule in keys(strat.rules)
-                if summary_ts[i-1, strat.rules[rule].trigger] != 0
+                if summary_ts[strat.rules[rule].trigger].values[i-1] != 0
                     do_trade = true
-                    order_side = strat.rules[rule].args[1] == :buy ? 1 : strat.rules[rule].args[1] == :sell ? -1 : 0
-                    order_qty = strat.rules[rule].args[3]
+                    order_side = strat.rules[rule].action.args[1] == :buy ? 1 : strat.rules[rule].action.args[1] == :sell ? -1 : 0
+                    order_qty = strat.rules[rule].action.args[3]
                     pos[i] = order_qty * order_side
                     pnl[i] = pos[i] * (close_price[i] - trade_price[i])
                 end
@@ -79,4 +77,5 @@ function run(strat::Strategy, px_trade::Symbol=:Open, px_close::Symbol=:Settle):
         summary_ts = [summary_ts TS([pos pnl cumsum(pnl)], summary_ts.index, [:Pos,:PNL,:CumPNL])]
         result[asset] = summary_ts
     end
+    return result
 end

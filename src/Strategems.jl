@@ -19,9 +19,8 @@ export
     Rule,
     # portfolios
     Portfolio,#, update_portfolio!,
-    # accounting
     # strategies
-    Strategy, generate_trades
+    Strategy, generate_trades, generate_trades!, backtest
 
 include("universe.jl")
 include("paramset.jl")
