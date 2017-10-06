@@ -18,30 +18,33 @@ mutable struct Strategy
     end
 end
 
-function generate_trades(strat::Strategy)::Dict{String,TS}
+function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
     trades = Dict{String,TS}()
     for asset in strat.universe.assets
+        verbose ? print("Generating trades for asset $asset...") : nothing
         trades[asset] = TS()
         for signal_id in keys(strat.signals)
             local signal = prep_signal(strat.signals[signal_id], strat.indicators[asset])
             trades[asset] = [trades[asset] eval(signal)]
             trades[asset].fields[end] = signal_id
         end
+        verbose ? print("Done.\n") : nothing
     end
     return trades
 end
 
-function generate_trades!(strat::Strategy)::Void
-    strat.results["Trades"] = generate_trades(strat)
+function generate_trades!(strat::Strategy; args...)::Void
+    strat.results["Trades"] = generate_trades(strat; args...)
     return nothing
 end
 
-function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle)::Dict{String,TS}
+function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle, verbose::Bool=true)::Dict{String,TS}
     if !haskey(strat.results, "Trades")
-        generate_trades!(strat)
+        generate_trades!(strat, verbose=verbose)
     end
     result = Dict{String,TS}()
     for asset in strat.universe.assets
+        verbose ? print("Running backtest for asset $asset...") : nothing
         trades = strat.results["Trades"]
         @assert haskey(trades, asset) "Asset $asset not found in generated trades."
         asset_trades = trades[asset]
@@ -73,12 +76,13 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
         end
         summary_ts = [summary_ts TS([pos pnl cumsum(pnl)], summary_ts.index, [:Pos,:PNL,:CumPNL])]
         result[asset] = summary_ts
+        verbose ? print("Done.\n") : nothing
     end
     return result
 end
 
-function backtest!(strat::Strategy, px_trade::Symbol=:Open, px_close::Symbol=:Settle)::Void
-    strat.results["Backtest"] = backtest(strat, px_trade, px_close)
+function backtest!(strat::Strategy; args...)::Void
+    strat.results["Backtest"] = backtest(strat; args...)
     return nothing
 end
 

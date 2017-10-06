@@ -23,5 +23,4 @@ rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
 
 # strategy object
 strat = Strategy(universe, indicator, signals, rules)
-generate_trades!(strat)
 backtest!(strat)
