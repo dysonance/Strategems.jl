@@ -36,7 +36,7 @@ function generate_trades!(strat::Strategy)::Void
     return nothing
 end
 
-function backtest(strat::Strategy, px_trade::Symbol=:Open, px_close::Symbol=:Settle)::Dict{String,TS}
+function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle)::Dict{String,TS}
     if !haskey(strat.results, "Trades")
         generate_trades!(strat)
     end

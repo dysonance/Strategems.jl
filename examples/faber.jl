@@ -30,10 +30,6 @@ rules = Dict{Symbol,Rule}(:EnterLong => Rule(:GoLong, :(buy,asset,100)),
 # construct and test the strategy
 strat = Strategy(universe, indicator, signals, rules)
 
-#TODO: auto-generate trades within backtest if trades aren't there yet
-generate_trades!(strat)
-
-#TODO: make trade fields keyword arguments
 #TODO: print diagnostic information while running backtest
-backtest!(strat, :Open, :Close)
+backtest!(strat, px_trade=:Open, px_close=:Close)
 
