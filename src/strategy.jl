@@ -37,7 +37,9 @@ function generate_trades!(strat::Strategy)::Void
 end
 
 function backtest(strat::Strategy, px_trade::Symbol=:Open, px_close::Symbol=:Settle)::Dict{String,TS}
-    @assert haskey(strat.results, "Trades") "No trades generated for strategy - must run `generate_trades!` first."
+    if !haskey(strat.results, "Trades")
+        generate_trades!(strat)
+    end
     result = Dict{String,TS}()
     for asset in strat.universe.assets
         trades = strat.results["Trades"]
@@ -77,5 +79,10 @@ end
 
 function backtest!(strat::Strategy, px_trade::Symbol=:Open, px_close::Symbol=:Settle)::Void
     strat.results["Backtest"] = backtest(strat, px_trade, px_close)
+    return nothing
+end
+
+function reset_results!(strat::Strategy)::Void
+    strat.results = Dict{String,Any}()
     return nothing
 end
