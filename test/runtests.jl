@@ -2,10 +2,10 @@ using Strategems, Temporal, Indicators, Base.Dates
 using Base.Test
 
 # define universe and gather data
-assets = ["CHRIS/CME_CL1", "CHRIS/CME_RB1"]
-universe = Universe(["CHRIS/CME_CL1", "CHRIS/CME_RB1"])
+assets = ["Corn"]
+universe = Universe(assets)
 @test universe.assets == assets
-gather!(universe)
+gather!(universe, source=(asset)->Temporal.tsread("$(Pkg.dir("Temporal"))/data/$asset.csv"))
 @test length(setdiff(assets, collect(keys(universe.data)))) == 0
 
 # define indicators and parameter space
