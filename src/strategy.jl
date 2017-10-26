@@ -107,7 +107,7 @@ function optimize(strat::Strategy; summary_fun::Function=cum_pnl, args...)::Matr
     combos = get_param_combos(paramset)
     result = zeros(size(combos,1), size(combos,2)+1)
     for run in 1:size(combos,1)
-        reset_results!(strat)
+        reset_results!(strat, hard=false)
         combo = combos[run,:]
         strat.indicator.paramset.arg_defaults = combo
         backtest!(strat; args...)
@@ -124,7 +124,20 @@ function optimize!(strat::Strategy; args...)::Void
     return nothing
 end
 
-function reset_results!(strat::Strategy)::Void
-    strat.results = Dict{String,Any}()
+function reset_results!(strat::Strategy; hard::Bool=true)::Void
+    if hard
+        strat.results = Dict{String,Any}()
+    else
+        if haskey(strat.results, "Trades")
+            for asset in strat.universe.assets
+                strat.results["Trades"][asset] = zeros(strat.results["Trades"][asset])
+            end
+        end
+        if haskey(strat.results, "Backtest")
+            for asset in strat.universe.assets
+                strat.results["Backtest"][asset] = zeros(strat.results["Backtest"][asset])
+            end
+        end
+    end
     return nothing
 end
