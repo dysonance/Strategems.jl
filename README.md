@@ -10,6 +10,11 @@ Given the highly iterative nature of event-driven trading strategy development, 
 ## Dependencies
 This package makes heavy use of the [**Temporal**](https://github.com/dysonance/Temporal.jl) package's `TS` time series type to facilitate the underlying computations involved in cleaning & preprocessing the data used when testing a `Strategy`. Additionally, the [**Indicators**](https://github.com/dysonance/Indicators.jl/) package offers many technical analysis functions that have been written/designed with the goal of a highly generalized systematic trading strategy research engine in mind, and should thus should simplify the process of working with this data quite a bit.
 
+## Install
+```julia
+julia> Pkg.clone("https://github.com/dysonance/Strategems.jl")
+```
+
 # Anatomy of a Strategy
 Below are the basic building blocks making up the general anatomy of a *Strategy* with respect to the `Strategems.jl` package design and the type definitions used to facilitate the research workflow.
 - `Universe`: encapsulation of the assets/securities the strategy is to be allowed to trade
