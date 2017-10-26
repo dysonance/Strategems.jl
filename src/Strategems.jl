@@ -11,7 +11,7 @@ export
     # parameter sets
     ParameterSet, get_n_runs, get_param_combos, get_run_params, generate_dict,
     # indicators
-    Indicator, calculate!,
+    Indicator, calculate,
     # signals
     Signal, prep_signal,
     # rules
@@ -21,7 +21,7 @@ export
     # order
     AbstractOrder, MarketOrder, LimitOrder, StopOrder, buy, sell, liquidate,
     # strategies
-    Strategy, generate_trades, generate_trades!, backtest, backtest!
+    Strategy, generate_trades, generate_trades!, backtest, backtest!, optimize, optimize!
 
 include("universe.jl")
 include("paramset.jl")
