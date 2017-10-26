@@ -98,6 +98,9 @@ end
 
 Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.signals, strat.rules)
 
+#TODO: more meaningful progres information
+#TODO: parallel processing
+#TODO: streamline this so that it doesnt run so slow (seems to be recompiling at each run)
 function optimize(strat::Strategy; summary_fun::Function=cum_pnl, args...)::Matrix
     strat_save = copy(strat)
     paramset = strat.indicator.paramset
@@ -111,8 +114,8 @@ function optimize(strat::Strategy; summary_fun::Function=cum_pnl, args...)::Matr
             #sub_indicator = Indicator(strat.indicators[asset].fun, sub_paramset)
             #sub_strat = Strategy(strat.universe, sub_indicator, strat.signals, strat.rules)
             strat.indicator.paramset.arg_defaults = combo
-            backtest!(sub_strat; args...)
-            results[run,end] = summary_fun(sub_strat)
+            backtest!(strat; args...)
+            result[run,end] = summary_fun(strat)
         end
     end
     # prevent out-of-scope alteration of strat object
