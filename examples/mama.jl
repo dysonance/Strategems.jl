@@ -34,9 +34,7 @@ signals = Dict{Symbol,Signal}(:GoLong=>Signal(:(MAMA ↑ FAMA)),
 rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
                           :EnterShort=>Rule(:GoShort, :(sell,asset,100)))
 
-# strategy object
+# run strategy
 strat = Strategy(universe, indicator, signals, rules)
 backtest!(strat)
-
-# optimize over indicator parameter space
-optimize!(strat);
+optimize!(strat)

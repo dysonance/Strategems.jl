@@ -39,7 +39,7 @@ function generate_trades!(strat::Strategy; args...)::Void
     return nothing
 end
 
-function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle, verbose::Bool=true)::Dict{String,TS}
+function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle, verbose::Bool=true)::Dict{String,TS{Float64}}
     if isempty(strat.results.trades)
         generate_trades!(strat, verbose=verbose)
     end
@@ -112,10 +112,10 @@ end
 function optimize!(strat::Strategy; verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Void
     combos = get_param_combos(strat.indicator.paramset)
     n_runs = size(combos,1)
+    strat.results.optimization = zeros(n_runs,1)
     @inbounds for run in 1:n_runs
-        combo = combos[run,:]
         println("Run $run/$n_runs ($(round(100.0*run/n_runs, 2))%)")
-        strat.indicator.paramset.arg_defaults = combo
+        strat.indicator.paramset.arg_defaults = combos[run,:]
         generate_trades!(strat, verbose=false)
         backtest!(strat, verbose=false; args...)
         strat.results.optimization[run] = summary_fun(strat.results)
