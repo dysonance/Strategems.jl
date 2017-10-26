@@ -19,6 +19,56 @@ Below are the basic building blocks making up the general anatomy of a *Strategy
 - `Rule`: applications of trading logic derived from interpretations of prior calculations & signals at each time step
 - `Strategy`: overarching object encapsulating and directing all of the above logic and data to power the backtesting engine
 
+# Example Usage
+Below is a quick example demonstrating a simple use-case that one might use to get acquainted with how the package works. Note that the custom infix operators denoted by the uparrow and downarrow below are defined in this package as another way of expressing that one variable crosses over another. The intention of this infix operator definition is to hopefully make the definition of a strategy more syntactically expressive and intuitive.
+
+The key indicator used in this strategy is John Ehlers's MESA Adaptive Moving Average (or *MAMA* for short). This functionality is implemented in the `Indicators.jl` package described above, and outputs a `Matrix` (or `TS` object if one is passed as an input) of two columns, the first being the *MAMA* itself and the second being the *FAMA*, or following adaptive moving average.
+
+This strategy simply goes long when the *MAMA* crosses over the *FAMA*, and goes short when the *FAMA* crosses over the *MAMA*. Below is an implementation that shows how to set default arguments to the `Indicators.mama` function and run a simple backtest using those parameters, and also define specified ranges over which we might like to see how the strategy behaves under different parameter sets.
+
+```julia
+using Strategems, Temporal, Indicators, Base.Dates
+using Base.Test
+
+# define universe and gather data
+assets = ["CHRIS/CME_CL1", "CHRIS/CME_RB1"]
+universe = Universe(["CHRIS/CME_CL1", "CHRIS/CME_RB1"])
+function datasource(asset::String; save_downloads::Bool=true)::TS
+    savedata_path = Pkg.dir("Strategems", "data/$asset.csv")
+    if isfile(savedata_path)
+        return Temporal.tsread(savedata_path)
+    else
+        X = quandl(asset)
+        if save_downloads
+            Temporal.tswrite(X, savedata_path)
+        end
+        return X
+    end
+end
+gather!(universe, source=datasource)
+
+# define indicators and parameter space
+arg_names = [:fastlimit, :slowlimit]
+arg_defaults = [0.5, 0.05]
+arg_ranges = [0.05:0.25:0.95, 0.05:0.25:0.95]
+paramset = ParameterSet(arg_names, arg_defaults, arg_ranges)
+f(x; args...) = Indicators.mama(Temporal.hl2(x); args...)
+indicator = Indicator(f, paramset)
+
+# define signals
+signals = Dict{Symbol,Signal}(:GoLong=>Signal(:(MAMA ↑ FAMA)),
+                              :GoShort=>Signal(:(MAMA ↓ FAMA)))
+
+# define the trading rule
+rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
+                          :EnterShort=>Rule(:GoShort, :(sell,asset,100)))
+
+# run strategy
+strat = Strategy(universe, indicator, signals, rules)
+backtest!(strat)
+optimize!(strat)
+```
+
 # Roadmap / Wish List
 * Get a sufficiently full-featured type system established to facilitate easy construction of simple strategies
 * Allow more intelligent logic for trading rules
