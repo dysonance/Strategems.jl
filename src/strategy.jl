@@ -121,7 +121,8 @@ function optimize(strat::Strategy; summary_fun::Function=cum_pnl, args...)::Matr
 end
 
 # TODO: implement function to edit results member of strat in place
-function optimize!(strat::Strategy; summary_fun::Function=cum_pnl, args...)::Void
+function optimize!(strat::Strategy; args...)::Void
+    strat.results["Optimization"] = optimize(strat; args...)
     return nothing
 end
 
