@@ -21,7 +21,7 @@ gather!(universe, source=datasource)
 # define indicators and parameter space
 arg_names = [:fastlimit, :slowlimit]
 arg_defaults = [0.5, 0.05]
-arg_ranges = [0.01:0.01:0.99, 0.01:0.01:0.99]
+arg_ranges = [0.05:0.10:0.95, 0.05:0.10:0.95]
 paramset = ParameterSet(arg_names, arg_defaults, arg_ranges)
 f(x; args...) = Indicators.mama(Temporal.hl2(x); args...)
 indicator = Indicator(f, paramset)
@@ -39,4 +39,4 @@ strat = Strategy(universe, indicator, signals, rules)
 backtest!(strat)
 
 # optimize over indicator parameter space
-output = optimize(strat)
+optimize!(strat);

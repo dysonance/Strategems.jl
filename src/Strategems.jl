@@ -20,6 +20,10 @@ export
     Portfolio,#, update_portfolio!,
     # order
     AbstractOrder, MarketOrder, LimitOrder, StopOrder, buy, sell, liquidate,
+    # strategy results
+    Results,
+    # summary statistic calculations
+    cum_pnl,
     # strategies
     Strategy, generate_trades, generate_trades!, backtest, backtest!, optimize, optimize!
 
@@ -30,6 +34,8 @@ include("signal.jl")
 include("rule.jl")
 include("portfolio.jl")
 include("orders.jl")
+include("results.jl")
+include("stats.jl")
 include("strategy.jl")
 
 end

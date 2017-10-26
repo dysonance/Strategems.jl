@@ -8,13 +8,13 @@ mutable struct Strategy
     signals::Dict{Symbol,Signal}
     rules::Dict{Symbol,Rule}
     portfolio::Portfolio
-    results::Dict
+    results::Results
     function Strategy(universe::Universe,
                       indicator::Indicator,
                       signals::Dict{Symbol,Signal},
                       rules::Dict{Symbol,Rule},
                       portfolio::Portfolio=Portfolio(universe))
-        return new(universe, indicator, signals, rules, portfolio, Dict())
+        return new(universe, indicator, signals, rules, portfolio, Results())
     end
 end
 
@@ -35,20 +35,18 @@ function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
 end
 
 function generate_trades!(strat::Strategy; args...)::Void
-    strat.results["Trades"] = generate_trades(strat; args...)
+    strat.results.trades = generate_trades(strat; args...)
     return nothing
 end
 
 function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle, verbose::Bool=true)::Dict{String,TS}
-    if !haskey(strat.results, "Trades")
+    if isempty(strat.results.trades)
         generate_trades!(strat, verbose=verbose)
     end
     result = Dict{String,TS}()
     for asset in strat.universe.assets
         verbose ? print("Running backtest for asset $asset...") : nothing
-        trades = strat.results["Trades"]
-        @assert haskey(trades, asset) "Asset $asset not found in generated trades."
-        asset_trades = trades[asset]
+        asset_trades = strat.results.trades[asset]
         N = size(asset_trades, 1)
         summary_ts = [strat.universe.data[asset] asset_trades]
         #TODO: add setindex! method for TS objects using Symbol and Vector to assign inplace
@@ -83,17 +81,8 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
 end
 
 function backtest!(strat::Strategy; args...)::Void
-    strat.results["Backtest"] = backtest(strat; args...)
+    strat.results.backtest = backtest(strat; args...)
     return nothing
-end
-
-function cum_pnl(strat::Strategy)::Float64
-    result = 0.0
-    @inbounds for asset in strat.universe.assets
-        pnl::Vector = strat.results["Backtest"][asset][:PNL].values
-        result += sum(pnl)
-    end
-    return result
 end
 
 Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.signals, strat.rules)
@@ -101,17 +90,18 @@ Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.sig
 #TODO: more meaningful progres information
 #TODO: parallel processing
 #TODO: streamline this so that it doesnt run so slow (seems to be recompiling at each run)
-function optimize(strat::Strategy; summary_fun::Function=cum_pnl, args...)::Matrix
+function optimize(strat::Strategy; verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Matrix
     strat_save = copy(strat)
     paramset = strat.indicator.paramset
     combos = get_param_combos(paramset)
-    result = zeros(size(combos,1), size(combos,2)+1)
-    for run in 1:size(combos,1)
-        reset_results!(strat, hard=false)
-        combo = combos[run,:]
-        strat.indicator.paramset.arg_defaults = combo
-        backtest!(strat; args...)
-        result[run,end] = summary_fun(strat)
+    n_runs = size(combos,1)
+    result = zeros(n_runs)
+    @inbounds for run in 1:n_runs
+        println("Run $run/$n_runs ($(round(100.0*run/n_runs, 2))%)")
+        strat.indicator.paramset.arg_defaults = combos[run,:]
+        generate_trades!(strat, verbose=false)
+        backtest!(strat, verbose=false; args...)
+        result[run] = summary_fun(strat.results.backtest)
     end
     # prevent out-of-scope alteration of strat object
     strat = strat_save
@@ -119,25 +109,18 @@ function optimize(strat::Strategy; summary_fun::Function=cum_pnl, args...)::Matr
 end
 
 # TODO: implement function to edit results member of strat in place
-function optimize!(strat::Strategy; args...)::Void
-    strat.results["Optimization"] = optimize(strat; args...)
-    return nothing
-end
-
-function reset_results!(strat::Strategy; hard::Bool=true)::Void
-    if hard
-        strat.results = Dict{String,Any}()
-    else
-        if haskey(strat.results, "Trades")
-            for asset in strat.universe.assets
-                strat.results["Trades"][asset] = zeros(strat.results["Trades"][asset])
-            end
-        end
-        if haskey(strat.results, "Backtest")
-            for asset in strat.universe.assets
-                strat.results["Backtest"][asset] = zeros(strat.results["Backtest"][asset])
-            end
-        end
+function optimize!(strat::Strategy; verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Void
+    combos = get_param_combos(strat.indicator.paramset)
+    n_runs = size(combos,1)
+    result = zeros(n_runs)
+    @inbounds for run in 1:n_runs
+        combo = combos[run,:]
+        println("Run $run/$n_runs ($(round(100.0*run/n_runs, 2))%)")
+        strat.indicator.paramset.arg_defaults = combo
+        generate_trades!(strat, verbose=false)
+        backtest!(strat, verbose=false; args...)
+        result[run] = summary_fun(strat.results)
     end
     return nothing
 end
+
