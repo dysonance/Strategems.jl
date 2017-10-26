@@ -6,6 +6,8 @@ mutable struct ParameterSet
     arg_ranges::Vector
     arg_types::Vector{<:Type}
     n_args::Int
+    #TODO: parameter constraints (e.g. ensure one parameter always greater than another)
+    #TODO: refactor out the arg_ prefix (its redundant if they all start with it)
     function ParameterSet(arg_names::Vector{Symbol},
                           arg_defaults::Vector,
                           arg_ranges::Vector=[x:x for x in arg_defaults])
@@ -57,10 +59,10 @@ function get_run_params(ps::ParameterSet; n_runs::Int=get_n_runs(ps))::Vector{Di
     return arg_dicts
 end
 
-function generate_dict(ps::ParameterSet)::Dict{Symbol,Any}
+function generate_dict(ps::ParameterSet; arg_values::Vector=ps.arg_defaults)::Dict{Symbol,Any}
     out_dict = Dict{Symbol,Any}()
     for j in 1:ps.n_args
-        out_dict[ps.arg_names[j]] = ps.arg_defaults[j]
+        out_dict[ps.arg_names[j]] = arg_values[j]
     end
     return out_dict
 end

@@ -8,10 +8,14 @@ mutable struct Indicator
     end
 end
 
-function calculate!(indicator::Indicator, input::TS)::Void
-    indicator.data = indicator.fun(input; generate_dict(indicator.paramset)...)
-    return nothing
+function calculate(indicator::Indicator, input::TS)::TS
+    return indicator.fun(input; generate_dict(indicator.paramset)...)
 end
+
+# function calculate!(indicator::Indicator, input::TS)::Void
+#     indicator.data = calculate(indicator, input)
+#     return nothing
+# end
 
 function generate_dict(universe::Universe, indicator::Indicator)::Dict{String,Indicator}
     indicators = Dict{String,Indicator}()

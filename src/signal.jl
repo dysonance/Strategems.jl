@@ -10,10 +10,10 @@ mutable struct Signal
     end
 end
 
-function prep_signal(signal::Signal, indicator::Indicator)::Expr
+function prep_signal(signal::Signal, indicator_data::TS)::Expr
     local switch = copy(signal.switch)
     for i in 2:length(switch.args)
-        switch.args[i] = indicator.data[switch.args[i]]
+        switch.args[i] = indicator_data[switch.args[i]]
     end
     return switch
 end

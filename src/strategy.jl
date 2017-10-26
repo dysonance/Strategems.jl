@@ -4,7 +4,7 @@ Type definition and methods containing the overarching backtesting object fuelin
 
 mutable struct Strategy
     universe::Universe
-    indicators::Dict{String,Indicator}
+    indicator::Indicator
     signals::Dict{Symbol,Signal}
     rules::Dict{Symbol,Rule}
     portfolio::Portfolio
@@ -14,7 +14,7 @@ mutable struct Strategy
                       signals::Dict{Symbol,Signal},
                       rules::Dict{Symbol,Rule},
                       portfolio::Portfolio=Portfolio(universe))
-        return new(universe, generate_dict(universe, indicator), signals, rules, portfolio, Dict())
+        return new(universe, indicator, signals, rules, portfolio, Dict())
     end
 end
 
@@ -24,7 +24,8 @@ function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
         verbose ? print("Generating trades for asset $asset...") : nothing
         trades[asset] = TS()
         for signal_id in keys(strat.signals)
-            local signal = prep_signal(strat.signals[signal_id], strat.indicators[asset])
+            local indicator_data = calculate(strat.indicator, strat.universe.data[asset])
+            local signal = prep_signal(strat.signals[signal_id], indicator_data)
             trades[asset] = [trades[asset] eval(signal)]
             trades[asset].fields[end] = signal_id
         end
@@ -83,6 +84,44 @@ end
 
 function backtest!(strat::Strategy; args...)::Void
     strat.results["Backtest"] = backtest(strat; args...)
+    return nothing
+end
+
+function cum_pnl(strat::Strategy)::Float64
+    result = 0.0
+    @inbounds for asset in strat.universe.assets
+        pnl::Vector = strat.results["Backtest"][asset][:PNL].values
+        result += sum(pnl)
+    end
+    return result
+end
+
+Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.signals, strat.rules)
+
+function optimize(strat::Strategy; summary_fun::Function=cum_pnl, args...)::Matrix
+    strat_save = copy(strat)
+    paramset = strat.indicator.paramset
+    combos = get_param_combos(paramset)
+    result = zeros(size(combos,1), size(combos,2)+1)
+    for run in 1:size(combos,1)
+        reset_results!(strat)
+        for asset in strat.universe.assets
+            combo = combos[run,:]
+            #sub_paramset = ParameterSet(strat.indicators[asset].paramset.arg_names, combo)
+            #sub_indicator = Indicator(strat.indicators[asset].fun, sub_paramset)
+            #sub_strat = Strategy(strat.universe, sub_indicator, strat.signals, strat.rules)
+            strat.indicator.paramset.arg_defaults = combo
+            backtest!(sub_strat; args...)
+            results[run,end] = summary_fun(sub_strat)
+        end
+    end
+    # prevent out-of-scope alteration of strat object
+    strat = strat_save
+    return result
+end
+
+# TODO: implement function to edit results member of strat in place
+function optimize!(strat::Strategy; summary_fun::Function=cum_pnl, args...)::Void
     return nothing
 end
 
