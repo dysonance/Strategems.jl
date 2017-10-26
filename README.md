@@ -7,6 +7,9 @@
 
 Given the highly iterative nature of event-driven trading strategy development, Julia's high-performance design (particularly in the context of loops) and straightforward syntax would seem to make it a natural fit as a language for systematic strategy research and development. While this package remains early in development, with time the hope is to be able to rapidly implement a trading idea, construct a historical backtest, analyze its results, optimize over a given parameter set, and visualize all of this with great detail.
 
+## Dependencies
+This package makes heavy use of the [**Temporal.jl**](https://github.com/dysonance/Temporal.jl) package's `TS` time series type to facilitate the underlying computations involved in cleaning & preprocessing the data used when testing a `Strategy`. Additionally, the [**Indicators**](https://github.com/dysonance/Indicators.jl/) package offers many technical analysis functions that have been written/designed with the goal of a highly generalized systematic trading strategy research engine in mind, and should thus should simplify the process of working with this data quite a bit.
+
 # Anatomy of a Strategy
 Below are the basic building blocks making up the general anatomy of a *Strategy* with respect to the `Strategems.jl` package design and the type definitions used to facilitate the research workflow.
 - `Universe`: encapsulation of the assets/securities the strategy is to be allowed to trade
