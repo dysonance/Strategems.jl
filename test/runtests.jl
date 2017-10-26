@@ -11,7 +11,9 @@ gather!(universe, source=(asset)->Temporal.tsread("$(Pkg.dir("Temporal"))/data/$
 # define indicators and parameter space
 arg_names = [:fastlimit, :slowlimit]
 arg_defaults = [0.5, 0.05]
-paramset = ParameterSet(arg_names, arg_defaults)
+#FIXME: get_param_combos breaking with other argument ranges
+arg_ranges = [0.05:0.25:0.99, 0.05:0.25:0.95]
+paramset = ParameterSet(arg_names, arg_defaults, arg_ranges)
 @test paramset.arg_names == arg_names
 f(x; args...) = Indicators.mama(Temporal.hl2(x); args...)
 indicator = Indicator(f, paramset)
@@ -28,4 +30,7 @@ rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
 strat = Strategy(universe, indicator, signals, rules)
 generate_trades!(strat)
 backtest!(strat)
-@test length(setdiff(collect(keys(strat.results["Backtest"])), universe.assets)) == 0
+optimize!(strat)
+@test size(strat.results.optimization,1) == get_n_runs(paramset)
+@test size(strat.results.optimization,2) == length(arg_names)+1
+@test strat.results.optimization[:,1:length(arg_names)] == get_param_combos(paramset)
