@@ -112,15 +112,15 @@ end
 function optimize!(strat::Strategy; verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Void
     combos = get_param_combos(strat.indicator.paramset)
     n_runs = size(combos,1)
-    result = zeros(n_runs)
     @inbounds for run in 1:n_runs
         combo = combos[run,:]
         println("Run $run/$n_runs ($(round(100.0*run/n_runs, 2))%)")
         strat.indicator.paramset.arg_defaults = combo
         generate_trades!(strat, verbose=false)
         backtest!(strat, verbose=false; args...)
-        result[run] = summary_fun(strat.results)
+        strat.results.optimization[run] = summary_fun(strat.results)
     end
+    strat.results.optimization = [combos strat.results.optimization]
     return nothing
 end
 

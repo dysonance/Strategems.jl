@@ -21,7 +21,7 @@ gather!(universe, source=datasource)
 # define indicators and parameter space
 arg_names = [:fastlimit, :slowlimit]
 arg_defaults = [0.5, 0.05]
-arg_ranges = [0.05:0.10:0.95, 0.05:0.10:0.95]
+arg_ranges = [0.05:0.25:0.95, 0.05:0.25:0.95]
 paramset = ParameterSet(arg_names, arg_defaults, arg_ranges)
 f(x; args...) = Indicators.mama(Temporal.hl2(x); args...)
 indicator = Indicator(f, paramset)
