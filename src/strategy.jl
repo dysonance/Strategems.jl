@@ -108,15 +108,10 @@ function optimize(strat::Strategy; summary_fun::Function=cum_pnl, args...)::Matr
     result = zeros(size(combos,1), size(combos,2)+1)
     for run in 1:size(combos,1)
         reset_results!(strat)
-        for asset in strat.universe.assets
-            combo = combos[run,:]
-            #sub_paramset = ParameterSet(strat.indicators[asset].paramset.arg_names, combo)
-            #sub_indicator = Indicator(strat.indicators[asset].fun, sub_paramset)
-            #sub_strat = Strategy(strat.universe, sub_indicator, strat.signals, strat.rules)
-            strat.indicator.paramset.arg_defaults = combo
-            backtest!(strat; args...)
-            result[run,end] = summary_fun(strat)
-        end
+        combo = combos[run,:]
+        strat.indicator.paramset.arg_defaults = combo
+        backtest!(strat; args...)
+        result[run,end] = summary_fun(strat)
     end
     # prevent out-of-scope alteration of strat object
     strat = strat_save
