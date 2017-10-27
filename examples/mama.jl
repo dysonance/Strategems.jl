@@ -21,7 +21,7 @@ gather!(universe, source=datasource)
 # define indicators and parameter space
 arg_names = [:fastlimit, :slowlimit]
 arg_defaults = [0.5, 0.05]
-arg_ranges = [0.05:0.25:0.95, 0.05:0.25:0.95]
+arg_ranges = [0.01:0.01:0.99, 0.01:0.01:0.99]
 paramset = ParameterSet(arg_names, arg_defaults, arg_ranges)
 f(x; args...) = Indicators.mama(Temporal.hl2(x); args...)
 indicator = Indicator(f, paramset)
@@ -37,4 +37,4 @@ rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
 # run strategy
 strat = Strategy(universe, indicator, signals, rules)
 backtest!(strat)
-optimize!(strat)
+optimize!(strat, samples=10)

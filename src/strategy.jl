@@ -90,14 +90,18 @@ Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.sig
 #TODO: more meaningful progres information
 #TODO: parallel processing
 #TODO: streamline this so that it doesnt run so slow (seems to be recompiling at each run)
-function optimize(strat::Strategy; verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Matrix
+function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Matrix
     strat_save = copy(strat)
-    paramset = strat.indicator.paramset
-    combos = get_param_combos(paramset)
-    n_runs = size(combos,1)
+    n_runs = get_n_runs(strat.indicator.paramset)
+    idx_samples::Vector{Int} = collect(1:n_runs)
+    if samples > 0
+        srand(seed)
+        idx_samples = rand(idx_samples, samples)
+    end
+    combos = get_param_combos(strat.indicator.paramset, n_runs)[idx_samples,:]
     result = zeros(n_runs)
-    @inbounds for run in 1:n_runs
-        println("Run $run/$n_runs ($(round(100.0*run/n_runs, 2))%)")
+    @inbounds for run in idx_samples
+        verbose ? println("Run $run/$(length(idx_samples))") : nothing
         strat.indicator.paramset.arg_defaults = combos[run,:]
         generate_trades!(strat, verbose=false)
         backtest!(strat, verbose=false; args...)
@@ -109,12 +113,17 @@ function optimize(strat::Strategy; verbose::Bool=true, summary_fun::Function=cum
 end
 
 # TODO: implement function to edit results member of strat in place
-function optimize!(strat::Strategy; verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Void
-    combos = get_param_combos(strat.indicator.paramset)
-    n_runs = size(combos,1)
+function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Void
+    n_runs = get_n_runs(strat.indicator.paramset)
+    idx_samples::Vector{Int} = collect(1:n_runs)
+    if samples > 0
+        srand(seed)
+        idx_samples = rand(idx_samples, samples)
+    end
+    combos = get_param_combos(strat.indicator.paramset, n_runs)[idx_samples,:]
     strat.results.optimization = zeros(n_runs,1)
-    @inbounds for run in 1:n_runs
-        println("Run $run/$n_runs ($(round(100.0*run/n_runs, 2))%)")
+    @inbounds for run in idx_samples
+        verbose ? println("Run $run/$(length(idx_samples))") : nothing
         strat.indicator.paramset.arg_defaults = combos[run,:]
         generate_trades!(strat, verbose=false)
         backtest!(strat, verbose=false; args...)
