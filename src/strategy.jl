@@ -131,6 +131,8 @@ function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=t
     if samples > 0
         srand(seed)
         idx_samples = rand(idx_samples, samples)
+    else
+        samples = n_runs
     end
     combos = get_param_combos(strat.indicator.paramset, n_runs)[idx_samples,:]
     strat.results.optimization = zeros(samples,1)
