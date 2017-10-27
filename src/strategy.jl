@@ -100,12 +100,12 @@ function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=tr
     end
     combos = get_param_combos(strat.indicator.paramset, n_runs)[idx_samples,:]
     result = zeros(n_runs)
-    @inbounds for run in idx_samples
-        verbose ? println("Run $run/$(length(idx_samples))") : nothing
-        strat.indicator.paramset.arg_defaults = combos[run,:]
+    @inbounds for (iter, combo_idx) in enumerate(idx_samples)
+        verbose ? println("Run $iter/$(length(idx_samples))") : nothing
+        strat.indicator.paramset.arg_defaults = combos[combo_idx,:]
         generate_trades!(strat, verbose=false)
         backtest!(strat, verbose=false; args...)
-        result[run] = summary_fun(strat.results.backtest)
+        result[iter] = summary_fun(strat.results.backtest)
     end
     # prevent out-of-scope alteration of strat object
     strat = strat_save
@@ -122,12 +122,12 @@ function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=t
     end
     combos = get_param_combos(strat.indicator.paramset, n_runs)[idx_samples,:]
     strat.results.optimization = zeros(n_runs,1)
-    @inbounds for run in idx_samples
-        verbose ? println("Run $run/$(length(idx_samples))") : nothing
-        strat.indicator.paramset.arg_defaults = combos[run,:]
+    @inbounds for (iter, combo_idx) in enumerate(idx_samples)
+        verbose ? println("Run $iter/$(length(idx_samples))") : nothing
+        strat.indicator.paramset.arg_defaults = combos[combo_idx,:]
         generate_trades!(strat, verbose=false)
         backtest!(strat, verbose=false; args...)
-        strat.results.optimization[run] = summary_fun(strat.results)
+        strat.results.optimization[iter] = summary_fun(strat.results)
     end
     strat.results.optimization = [combos strat.results.optimization]
     return nothing
