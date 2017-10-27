@@ -11,8 +11,13 @@ Given the highly iterative nature of event-driven trading strategy development, 
 This package makes heavy use of the [**Temporal**](https://github.com/dysonance/Temporal.jl) package's `TS` time series type to facilitate the underlying computations involved in cleaning & preprocessing the data used when testing a `Strategy`. Additionally, the [**Indicators**](https://github.com/dysonance/Indicators.jl/) package offers many technical analysis functions that have been written/designed with the goal of a highly generalized systematic trading strategy research engine in mind, and should thus should simplify the process of working with this data quite a bit.
 
 ## Install
+The Strategems package can be installed using the standard Julia package manager functions.
 ```julia
-julia> Pkg.clone("https://github.com/dysonance/Strategems.jl")
+# Option A:
+Pkg.add("Strategems")
+
+# Option B:
+Pkg.clone("https://github.com/dysonance/Strategems.jl")
 ```
 
 # Anatomy of a Strategy
