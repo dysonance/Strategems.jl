@@ -129,7 +129,9 @@ function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=t
     n_runs = get_n_runs(strat.indicator.paramset)
     idx_samples::Vector{Int} = collect(1:n_runs)
     if samples > 0
-        srand(seed)
+        if seed >= 0
+            srand(seed)
+        end
         idx_samples = rand(idx_samples, samples)
     else
         samples = n_runs
