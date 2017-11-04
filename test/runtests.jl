@@ -30,7 +30,6 @@ rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
 strat = Strategy(universe, indicator, signals, rules)
 generate_trades!(strat)
 backtest!(strat)
-optimize!(strat)
-@test size(strat.results.optimization,1) == get_n_runs(paramset)
+optimize!(strat, samples=4)
+@test size(strat.results.optimization,1) == 4
 @test size(strat.results.optimization,2) == length(arg_names)+1
-@test strat.results.optimization[:,1:length(arg_names)] == get_param_combos(paramset)

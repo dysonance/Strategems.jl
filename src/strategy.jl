@@ -87,18 +87,34 @@ end
 
 Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.signals, strat.rules)
 
+# define matrix row iterator protocol
+# this allows us to `enumerate(EachRow(M))`
+# thereby getting the count of the iteration as well as the row
+immutable EachRow{T<:AbstractMatrix}
+    A::T
+end
+Base.start(::EachRow) = 1
+Base.next(itr::EachRow, s) = (itr.A[s,:], s+1)
+Base.done(itr::EachRow, s) = s > size(itr.A,1)
+
 #TODO: more meaningful progres information
 #TODO: parallel processing
 #TODO: streamline this so that it doesnt run so slow (seems to be recompiling at each run)
-function optimize(strat::Strategy; verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Matrix
+function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Matrix
     strat_save = copy(strat)
-    paramset = strat.indicator.paramset
-    combos = get_param_combos(paramset)
-    n_runs = size(combos,1)
-    result = zeros(n_runs)
-    @inbounds for run in 1:n_runs
-        println("Run $run/$n_runs ($(round(100.0*run/n_runs, 2))%)")
-        strat.indicator.paramset.arg_defaults = combos[run,:]
+    n_runs = get_n_runs(strat.indicator.paramset)
+    idx_samples::Vector{Int} = collect(1:n_runs)
+    if samples > 0
+        srand(seed)
+        idx_samples = rand(idx_samples, samples)
+    else
+        samples = n_runs
+    end
+    combos = get_param_combos(strat.indicator.paramset, n_runs)[idx_samples,:]
+    result = zeros(samples)
+    for (run, combo) in enumerate(idx_samples)
+        verbose ? println("Run $run/$samples") : nothing
+        strat.indicator.paramset.arg_defaults = combo
         generate_trades!(strat, verbose=false)
         backtest!(strat, verbose=false; args...)
         result[run] = summary_fun(strat.results.backtest)
@@ -109,13 +125,22 @@ function optimize(strat::Strategy; verbose::Bool=true, summary_fun::Function=cum
 end
 
 # TODO: implement function to edit results member of strat in place
-function optimize!(strat::Strategy; verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Void
-    combos = get_param_combos(strat.indicator.paramset)
-    n_runs = size(combos,1)
-    strat.results.optimization = zeros(n_runs,1)
-    @inbounds for run in 1:n_runs
-        println("Run $run/$n_runs ($(round(100.0*run/n_runs, 2))%)")
-        strat.indicator.paramset.arg_defaults = combos[run,:]
+function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Void
+    n_runs = get_n_runs(strat.indicator.paramset)
+    idx_samples::Vector{Int} = collect(1:n_runs)
+    if samples > 0
+        if seed >= 0
+            srand(seed)
+        end
+        idx_samples = rand(idx_samples, samples)
+    else
+        samples = n_runs
+    end
+    combos = get_param_combos(strat.indicator.paramset, n_runs)[idx_samples,:]
+    strat.results.optimization = zeros(samples,1)
+    for (run, combo) in enumerate(EachRow(combos))
+        verbose ? println("Run $run/$samples") : nothing
+        strat.indicator.paramset.arg_defaults = combo
         generate_trades!(strat, verbose=false)
         backtest!(strat, verbose=false; args...)
         strat.results.optimization[run] = summary_fun(strat.results)
