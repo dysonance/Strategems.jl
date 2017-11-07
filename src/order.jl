@@ -22,12 +22,28 @@ struct StopOrder <: AbstractOrder
 end
 
 #TODO: complete this logic, enable interaction with strategy/portfolio objects
-function buy(asset::String, quantity::Number)::Void
+#TODO: diffierentiate between buying vs. going long and the like (the latter should reverse position if short)
+function liquidate(portfolio::Portfolio, asset::String)::Void
     return nothing
 end
-function sell(asset::String, quantity::Number)::Void
+
+function buy(portfolio::Portfolio, asset::String, quantity::Number)::Void
     return nothing
 end
-function liquidate(asset::String)::Void
+
+function long(portfolio::Portfolio, asset::String, quantity::Number)::Void
+    liquidate(portfolio, asset)
+    buy(portfolio, asset, quantity)
     return nothing
 end
+
+function sell(portfolio::Portfolio, asset::String, quantity::Number)::Void
+    return nothing
+end
+
+function short(portfolio::Portfolio, asset::String, quantity::Number)::Void
+    liquidate(portfolio, asset)
+    sell(portfolio, asset, quantity)
+    return nothing
+end
+
