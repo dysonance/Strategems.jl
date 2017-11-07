@@ -15,12 +15,14 @@ arg_defaults = [0.5, 0.05]
 arg_ranges = [0.05:0.25:0.99, 0.05:0.25:0.95]
 paramset = ParameterSet(arg_names, arg_defaults, arg_ranges)
 @test paramset.arg_names == arg_names
-f(x; args...) = Indicators.mama(Temporal.hl2(x); args...)
+f(x; args...) = Indicators.mama(x; args...)
 indicator = Indicator(f, paramset)
 
 # define signals
-signals = Dict{Symbol,Signal}(:GoLong=>Signal(:(MAMA ↑ FAMA)),
-                              :GoShort=>Signal(:(MAMA ↓ FAMA)))
+#signals = Dict{Symbol,Signal}(:GoLong=>Signal(:(MAMA ↑ FAMA)), :GoShort=>Signal(:(MAMA ↓ FAMA)))
+siglong = @signal MAMA ↑ FAMA
+sigshort = @signal MAMA ↓ FAMA
+signals = Dict{Symbol,Signal}(:GoLong => siglong, :GoShort => sigshort)
 
 # define the trading rule
 rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
