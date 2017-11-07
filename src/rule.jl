@@ -8,3 +8,10 @@ mutable struct Rule
     action::Expr
 end
 
+macro rule(logic::Expr, args...)
+    dump(logic)
+    for i in 1:length(args)
+        println(args[i])
+    end
+    return logic
+end

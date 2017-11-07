@@ -19,19 +19,22 @@ mutable struct Strategy
 end
 
 function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
-    trades = Dict{String,TS}()
+    all_trades = Dict{String,TS}()
     for asset in strat.universe.assets
         verbose ? print("Generating trades for asset $asset...") : nothing
-        trades[asset] = TS()
-        for signal_id in keys(strat.signals)
+        trades = TS(falses(size(strat.universe.data[asset],1), length(strat.signals)),
+                    strat.universe.data[asset].index,
+                    collect(keys(strat.signals)))
+        for (signal_id, signal) in strat.signals
             local indicator_data = calculate(strat.indicator, strat.universe.data[asset])
-            local signal = prep_signal(strat.signals[signal_id], indicator_data)
-            trades[asset] = [trades[asset] eval(signal)]
-            trades[asset].fields[end] = signal_id
+            #local signal = prep_signal(strat.signals[signal_id], indicator_data)
+            #trades[asset].fields[end] = signal_id
+            trades[signal_id] = signal.fun(indicator_data)
         end
+        all_trades[asset] = trades
         verbose ? print("Done.\n") : nothing
     end
-    return trades
+    return all_trades
 end
 
 function generate_trades!(strat::Strategy; args...)::Void

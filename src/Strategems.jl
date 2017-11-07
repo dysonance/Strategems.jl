@@ -13,7 +13,7 @@ export
     # indicators
     Indicator, calculate,
     # signals
-    Signal, prep_signal,
+    Signal, prep_signal, ↑, ↓, @signal,
     # rules
     Rule,
     # portfolios
