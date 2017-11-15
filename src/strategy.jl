@@ -5,16 +5,14 @@ Type definition and methods containing the overarching backtesting object fuelin
 mutable struct Strategy
     universe::Universe
     indicator::Indicator
-    signals::Dict{Symbol,Signal}
-    rules::Dict{Symbol,Rule}
+    rules::Tuple{Vararg{Rule}}
     portfolio::Portfolio
     results::Results
     function Strategy(universe::Universe,
                       indicator::Indicator,
-                      signals::Dict{Symbol,Signal},
-                      rules::Dict{Symbol,Rule},
+                      rules::Tuple{Vararg{Rule}},
                       portfolio::Portfolio=Portfolio(universe))
-        return new(universe, indicator, signals, rules, portfolio, Results())
+        return new(universe, indicator, rules, portfolio, Results())
     end
 end
 
@@ -22,14 +20,11 @@ function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
     all_trades = Dict{String,TS}()
     for asset in strat.universe.assets
         verbose ? print("Generating trades for asset $asset...") : nothing
-        trades = TS(falses(size(strat.universe.data[asset],1), length(strat.signals)),
-                    strat.universe.data[asset].index,
-                    collect(keys(strat.signals)))
-        for (signal_id, signal) in strat.signals
+        trades = TS(falses(size(strat.universe.data[asset],1), length(strat.rules)),
+                    strat.universe.data[asset].index)
+        for (i,rule) in enumerate(strat.rules);
             local indicator_data = calculate(strat.indicator, strat.universe.data[asset])
-            #local signal = prep_signal(strat.signals[signal_id], indicator_data)
-            #trades[asset].fields[end] = signal_id
-            trades[signal_id] = signal.fun(indicator_data)
+            trades[:,i] = rule.trigger.fun(indicator_data)
         end
         all_trades[asset] = trades
         verbose ? print("Done.\n") : nothing
@@ -49,9 +44,9 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
     result = Dict{String,TS}()
     for asset in strat.universe.assets
         verbose ? print("Running backtest for asset $asset...") : nothing
-        asset_trades = strat.results.trades[asset]
+        trades = strat.results.trades[asset].values
         N = size(asset_trades, 1)
-        summary_ts = [strat.universe.data[asset] asset_trades]
+        #summary_ts = [strat.universe.data[asset] asset_trades]
         #TODO: add setindex! method for TS objects using Symbol and Vector to assign inplace
         #TODO: generalize this logic to incorporate order types
         #FIXME: generalize this logic to use the actual rules (this is a temporary quickfix)
@@ -60,19 +55,22 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
         pos = zeros(Float64, N)
         pnl = zeros(Float64, N)
         do_trade = false
-        for i in 2:N
-            for rule in keys(strat.rules)
-                if summary_ts[strat.rules[rule].trigger].values[i-1] != 0
+        for t in 2:N
+            for (i,rule) in strat.rules
+                if trades[t-1,i] != 0
                     do_trade = true
-                    order_side = strat.rules[rule].action.args[1] == :buy ? 1 : strat.rules[rule].action.args[1] == :sell ? -1 : 0
-                    order_qty = strat.rules[rule].action.args[3]
-                    pos[i] = order_qty * order_side
-                    pnl[i] = pos[i] * (close_price[i] - trade_price[i])
+                    #TODO: fill out this logic with the various order types
+                    order_side = rule.action in (long,buy) ? 1 : rule.action in (short,sell) ? -1 : 0
+                    #TODO: add logic here for the int vs. float argument type to order function
+                    (order_qty,) = rule.args
+                    #if isa(order_qty, Int); else FIXME: portfolio adjustment logic; end
+                    pos[t] = order_qty * order_side
+                    pnl[t] = pos[t] * (close_price[t] - trade_price[t])
                 end
             end
             if !do_trade
-                pos[i] = pos[i-1]
-                pnl[i] = pos[i] * (close_price[i]-close_price[i-1])
+                pos[t] = pos[t-1]
+                pnl[t] = pos[t] * (close_price[t]-close_price[t-1])
             end
             do_trade = false
         end
@@ -88,7 +86,7 @@ function backtest!(strat::Strategy; args...)::Void
     return nothing
 end
 
-Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.signals, strat.rules)
+Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.rules)
 
 # define matrix row iterator protocol
 # this allows us to `enumerate(EachRow(M))`

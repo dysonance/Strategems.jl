@@ -15,11 +15,11 @@ export
     # signals
     Signal, prep_signal, ↑, ↓, @signal,
     # rules
-    Rule,
+    Rule, @rule, →,
     # portfolios
     Portfolio,#, update_portfolio!,
     # order
-    AbstractOrder, MarketOrder, LimitOrder, StopOrder, buy, sell, liquidate,
+    AbstractOrder, MarketOrder, LimitOrder, StopOrder, liquidate, long, buy, short, sell,
     # strategy results
     Results,
     # summary statistic calculations
