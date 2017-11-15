@@ -23,27 +23,15 @@ end
 
 #TODO: complete this logic, enable interaction with strategy/portfolio objects
 #TODO: diffierentiate between buying vs. going long and the like (the latter should reverse position if short)
-function liquidate(portfolio::Portfolio, asset::String)::Void
-    return nothing
-end
 
-function buy(portfolio::Portfolio, asset::String, quantity::Number)::Void
-    return nothing
-end
+#TODO: add logic whereby the order logic is altered by the type `T` of qty
+# (if T<:Int, order that many *shares*, else if T<:Float64, interpret qty as a fraction of the portfolio at time t)
 
-function long(portfolio::Portfolio, asset::String, quantity::Number)::Void
-    liquidate(portfolio, asset)
-    buy(portfolio, asset, quantity)
-    return nothing
-end
+liquidate{T<:Real}(qty::T) = qty
 
-function sell(portfolio::Portfolio, asset::String, quantity::Number)::Void
-    return nothing
-end
+long{T<:Real}(qty::T)::T = qty
+buy{T<:Real}(qty::T)::T = qty
 
-function short(portfolio::Portfolio, asset::String, quantity::Number)::Void
-    liquidate(portfolio, asset)
-    sell(portfolio, asset, quantity)
-    return nothing
-end
+short{T<:Real}(qty::T)::T = qty
+sell{T<:Real}(qty::T)::T = qty
 

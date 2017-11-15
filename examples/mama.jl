@@ -26,17 +26,20 @@ paramset = ParameterSet(arg_names, arg_defaults, arg_ranges)
 f(x; args...) = Indicators.mama(x; args...)
 indicator = Indicator(f, paramset)
 
-# define signals
-# signals = Dict{Symbol,Signal}(:GoLong=>Signal(:(MAMA ↑ FAMA)), :GoShort=>Signal(:(MAMA ↓ FAMA)))
+# define signals that will trigger trading decisions
 siglong = @signal MAMA ↑ FAMA
 sigshort = @signal MAMA ↓ FAMA
-signals = Dict{Symbol,Signal}(:GoLong => siglong, :GoShort => sigshort)
+sigexit = @signal MAMA == FAMA
 
-# define the trading rule
-rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
-                          :EnterShort=>Rule(:GoShort, :(sell,asset,100)))
+# define the trading rules
+
+longrule = @rule siglong → long 100
+shortrule = @rule sigshort → short 100
+exitrule = @rule sigexit → liquidate 1.0
+
+rules = (longrule, shortrule, exitrule)
 
 # run strategy
-strat = Strategy(universe, indicator, signals, rules)
+strat = Strategy(universe, indicator, rules)
 backtest!(strat)
 optimize!(strat, samples=10)

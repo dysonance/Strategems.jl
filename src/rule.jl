@@ -3,15 +3,21 @@ Type and methods facilitating simple but effective syntax interface for defining
 =#
 
 #TODO: figure out how to make this a function that interfaces with the portfolio & account objects
-mutable struct Rule
-    trigger::Symbol
-    action::Expr
+struct Rule{S,F,T}
+    trigger::S
+    action::F
+    args::Tuple{Vararg{T}}
+    function Rule(trigger::S, action::F, args::Tuple{Vararg{T}}) where {S<:Signal, F<:Function, T}
+        return new{S,F,T}(trigger, action, args)
+    end
 end
 
 macro rule(logic::Expr, args...)
-    dump(logic)
-    for i in 1:length(args)
-        println(args[i])
-    end
-    return logic
+    trigger = :($(logic.args[2]))
+    #action = :($(logic.args[3])$((args...)))
+    action = :($(logic.args[3]))
+    args = :($(args...))
+    return esc(:(Rule($trigger, $action, $args)))
 end
+
+→(a,b) = a ? b() : nothing
