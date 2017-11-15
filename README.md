@@ -57,25 +57,25 @@ end
 gather!(universe, source=datasource)
 
 # define indicators and parameter space
-arg_names = [:fastlimit, :slowlimit]
-arg_defaults = [0.5, 0.05]
-arg_ranges = [0.01:0.01:0.99, 0.01:0.01:0.99]
-paramset = ParameterSet(arg_names, arg_defaults, arg_ranges)
+arg_names     = [:fastlimit, :slowlimit]
+arg_defaults  = [0.5, 0.05]
+arg_ranges    = [0.01:0.01:0.99, 0.01:0.01:0.99]
+paramset      = ParameterSet(arg_names, arg_defaults, arg_ranges)
 f(x; args...) = Indicators.mama(x; args...)
-indicator = Indicator(f, paramset)
+indicator     = Indicator(f, paramset)
 
 # define signals that will trigger trading decisions
 # note the uparrow infix operator is defined to simplify one variable crossing over another
 # (similarly for the downarrow infix operator for crossing under)
-siglong = @signal MAMA ↑ FAMA
+siglong  = @signal MAMA ↑ FAMA
 sigshort = @signal MAMA ↓ FAMA
-sigexit = @signal MAMA .== FAMA
+sigexit  = @signal MAMA .== FAMA
 
 # define the trading rules
-longrule = @rule siglong → long 100
+longrule  = @rule siglong → long 100
 shortrule = @rule sigshort → short 100
-exitrule = @rule sigexit → liquidate 1.0
-rules = (longrule, shortrule, exitrule)
+exitrule  = @rule sigexit → liquidate 1.0
+rules     = (longrule, shortrule, exitrule)
 
 # run strategy
 strat = Strategy(universe, indicator, rules)
