@@ -38,7 +38,6 @@ This strategy simply goes long when the *MAMA* crosses over the *FAMA*, and goes
 
 ```julia
 using Strategems, Temporal, Indicators, Base.Dates
-using Base.Test
 
 # define universe and gather data
 assets = ["CHRIS/CME_CL1", "CHRIS/CME_RB1"]
@@ -60,23 +59,43 @@ gather!(universe, source=datasource)
 # define indicators and parameter space
 arg_names = [:fastlimit, :slowlimit]
 arg_defaults = [0.5, 0.05]
-arg_ranges = [0.05:0.25:0.95, 0.05:0.25:0.95]
+arg_ranges = [0.01:0.01:0.99, 0.01:0.01:0.99]
 paramset = ParameterSet(arg_names, arg_defaults, arg_ranges)
-f(x; args...) = Indicators.mama(Temporal.hl2(x); args...)
+f(x; args...) = Indicators.mama(x; args...)
 indicator = Indicator(f, paramset)
 
-# define signals
-signals = Dict{Symbol,Signal}(:GoLong=>Signal(:(MAMA ↑ FAMA)),
-                              :GoShort=>Signal(:(MAMA ↓ FAMA)))
+# define signals that will trigger trading decisions
+# note the uparrow infix operator is defined to simplify one variable crossing over another
+# (similarly for the downarrow infix operator for crossing under)
+siglong = @signal MAMA ↑ FAMA
+sigshort = @signal MAMA ↓ FAMA
+sigexit = @signal MAMA .== FAMA
 
-# define the trading rule
-rules = Dict{Symbol,Rule}(:EnterLong=>Rule(:GoLong, :(buy,asset,100)),
-                          :EnterShort=>Rule(:GoShort, :(sell,asset,100)))
+# define the trading rules
+longrule = @rule siglong → long 100
+shortrule = @rule sigshort → short 100
+exitrule = @rule sigexit → liquidate 1.0
+rules = (longrule, shortrule, exitrule)
 
 # run strategy
-strat = Strategy(universe, indicator, signals, rules)
+strat = Strategy(universe, indicator, rules)
 backtest!(strat)
-optimize!(strat)
+optimize!(strat, samples=0)  # randomly sample the parameter space (0 -> use all combinations)
+
+# cumulative pnl for each combination of the parameter space
+strat.results.optimization
+9801×3 Array{Float64,2}:
+0.01  0.01   -3194.62
+0.01  0.02   -4098.25
+0.01  0.03    5178.82
+0.01  0.04    6267.24
+0.01  0.05   10996.5
+⋮
+0.99  0.95  -14949.8
+0.99  0.96  -16431.6
+0.99  0.97  -16333.3
+0.99  0.98  -17081.7
+0.99  0.99  -17057.4
 ```
 
 # Roadmap / Wish List
