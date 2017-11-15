@@ -96,7 +96,15 @@ strat.results.optimization
 0.99  0.97  -16333.3
 0.99  0.98  -17081.7
 0.99  0.99  -17057.4
+
+# visualizing results with the Plots.jl package
+using Plots
+gr()
+(x, y, z) = (strat.results.optimization[:,i] for i in 1:3)
+surface(x, y, z)
 ```
+
+![alt text](https://raw.githubusercontent.com/dysonance/Strategems.jl/master/examples/mama_opt.png "Example Strategems Optimization")
 
 # Roadmap / Wish List
 * Get a sufficiently full-featured type system established to facilitate easy construction of simple strategies
