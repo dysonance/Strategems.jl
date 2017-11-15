@@ -29,14 +29,12 @@ indicator = Indicator(f, paramset)
 # define signals that will trigger trading decisions
 siglong = @signal MAMA ↑ FAMA
 sigshort = @signal MAMA ↓ FAMA
-sigexit = @signal MAMA == FAMA
+sigexit = @signal MAMA .== FAMA
 
 # define the trading rules
-
 longrule = @rule siglong → long 100
 shortrule = @rule sigshort → short 100
 exitrule = @rule sigexit → liquidate 1.0
-
 rules = (longrule, shortrule, exitrule)
 
 # run strategy

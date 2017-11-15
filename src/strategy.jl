@@ -22,8 +22,8 @@ function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
         verbose ? print("Generating trades for asset $asset...") : nothing
         trades = TS(falses(size(strat.universe.data[asset],1), length(strat.rules)),
                     strat.universe.data[asset].index)
+        local indicator_data = calculate(strat.indicator, strat.universe.data[asset])
         for (i,rule) in enumerate(strat.rules);
-            local indicator_data = calculate(strat.indicator, strat.universe.data[asset])
             trades[:,i] = rule.trigger.fun(indicator_data)
         end
         all_trades[asset] = trades
@@ -45,8 +45,8 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
     for asset in strat.universe.assets
         verbose ? print("Running backtest for asset $asset...") : nothing
         trades = strat.results.trades[asset].values
-        N = size(asset_trades, 1)
-        #summary_ts = [strat.universe.data[asset] asset_trades]
+        N = size(trades, 1)
+        summary_ts = strat.universe.data[asset]
         #TODO: add setindex! method for TS objects using Symbol and Vector to assign inplace
         #TODO: generalize this logic to incorporate order types
         #FIXME: generalize this logic to use the actual rules (this is a temporary quickfix)
@@ -56,7 +56,7 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
         pnl = zeros(Float64, N)
         do_trade = false
         for t in 2:N
-            for (i,rule) in strat.rules
+            for (i,rule) in enumerate(strat.rules)
                 if trades[t-1,i] != 0
                     do_trade = true
                     #TODO: fill out this logic with the various order types
