@@ -4,26 +4,26 @@ Type and methods to simplify data sourcing and management of the universe of tra
 
 const SEPARATORS = ['/', '_', '.']
 
-function guess_tickers(assets::Vector{String})::Vector{Symbol}
-    tickers = Symbol.([Temporal.namefix(split(asset, SEPARATORS)[end]) for asset in assets])
-    @assert tickers == unique(tickers)  "Non-unique ticker symbols found in universe"
-    return tickers
-end
+# function guess_tickers(assets::Vector{String})::Vector{Symbol}
+#     tickers = Symbol.([Temporal.namefix(split(asset, SEPARATORS)[end]) for asset in assets])
+#     @assert tickers == unique(tickers)  "Non-unique ticker symbols found in universe"
+#     return tickers
+# end
 
 mutable struct Universe
     assets::Vector{String}
-    tickers::Vector{Symbol}
+    # tickers::Vector{Symbol}
     data::Dict{String,TS}
     from::TimeType
     thru::TimeType
     function Universe(assets::Vector{String}, from::TimeType=Base.Dates.Date(0), thru::TimeType=Base.Dates.today())
         @assert assets == unique(assets)
-        tickers = guess_tickers(assets)
+        # tickers = guess_tickers(assets)
         data = Dict{String,TS}()
         @inbounds for asset in assets
             data[asset] = TS()
         end
-        return new(assets, tickers, data, from, thru)
+        return new(assets, data, from, thru)
     end
 end
 
