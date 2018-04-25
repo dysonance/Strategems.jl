@@ -111,7 +111,7 @@ function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=tr
     else
         samples = n_runs
     end
-    combos = get_param_combos(strat.indicator.paramset, n_runs)[idx_samples,:]
+    combos = get_param_combos(strat.indicator.paramset, n_runs=n_runs)[idx_samples,:]
     result = zeros(samples)
     for (run, combo) in enumerate(idx_samples)
         verbose ? println("Run $run/$samples") : nothing
@@ -137,7 +137,7 @@ function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=t
     else
         samples = n_runs
     end
-    combos = get_param_combos(strat.indicator.paramset, n_runs)[idx_samples,:]
+    combos = get_param_combos(strat.indicator.paramset, n_runs=n_runs)[idx_samples,:]
     strat.results.optimization = zeros(samples,1)
     for (run, combo) in enumerate(EachRow(combos))
         verbose ? println("Run $run/$samples") : nothing
