@@ -26,7 +26,7 @@ function get_n_runs(ps::ParameterSet)::Int
     return n_runs
 end
 
-function get_param_combos(ps::ParameterSet, n_runs::Int=get_n_runs(ps))::Matrix
+function get_param_combos(ps::ParameterSet; n_runs::Int=get_n_runs(ps))::Matrix
     combos = Matrix{Any}(n_runs, ps.n_args)
     P = 1
     for j in 1:ps.n_args
