@@ -1,5 +1,7 @@
-using Strategems, Temporal, Indicators, Base.Dates
-using Base.Test
+using Strategems, Temporal, Indicators
+using Dates
+using Test
+using Pkg
 
 # define universe and gather data
 assets = ["Corn"]
@@ -22,7 +24,7 @@ assets = ["Corn"]
         #     end
         # end
         # gather!(universe, source=datasource)
-        gather!(universe, source=(asset)->Temporal.tsread("$(Pkg.dir("Temporal"))/data/$asset.csv"))
+        gather!(universe, source=(asset)->Temporal.tsread(joinpath(dirname(pathof(Temporal)), "..", "data/$asset.csv")))
         @test length(setdiff(assets, collect(keys(universe.data)))) == 0
     end
 end

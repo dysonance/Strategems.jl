@@ -1,3 +1,5 @@
+using Random
+
 #=
 Type definition and methods containing the overarching backtesting object fueling the engine
 =#
@@ -32,7 +34,7 @@ function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
     return all_trades
 end
 
-function generate_trades!(strat::Strategy; args...)::Void
+function generate_trades!(strat::Strategy; args...)::Nothing
     strat.results.trades = generate_trades(strat; args...)
     return nothing
 end
@@ -81,7 +83,7 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
     return result
 end
 
-function backtest!(strat::Strategy; args...)::Void
+function backtest!(strat::Strategy; args...)::Nothing
     strat.results.backtest = backtest(strat; args...)
     return nothing
 end
@@ -91,7 +93,7 @@ Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.rul
 # define matrix row iterator protocol
 # this allows us to `enumerate(EachRow(M))`
 # thereby getting the count of the iteration as well as the row
-immutable EachRow{T<:AbstractMatrix}
+struct EachRow{T<:AbstractMatrix}
     A::T
 end
 Base.start(::EachRow) = 1
@@ -106,7 +108,7 @@ function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=tr
     n_runs = get_n_runs(strat.indicator.paramset)
     idx_samples::Vector{Int} = collect(1:n_runs)
     if samples > 0
-        srand(seed)
+        Random.seed!(seed)
         idx_samples = rand(idx_samples, samples)
     else
         samples = n_runs
@@ -126,12 +128,12 @@ function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=tr
 end
 
 # TODO: implement function to edit results member of strat in place
-function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Void
+function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Nothing
     n_runs = get_n_runs(strat.indicator.paramset)
     idx_samples::Vector{Int} = collect(1:n_runs)
     if samples > 0
         if seed >= 0
-            srand(seed)
+            Random.seed!(seed)
         end
         idx_samples = rand(idx_samples, samples)
     else

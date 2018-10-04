@@ -12,7 +12,7 @@ function calculate(indicator::Indicator, input::TS)::TS
     return indicator.fun(input; generate_dict(indicator.paramset)...)
 end
 
-# function calculate!(indicator::Indicator, input::TS)::Void
+# function calculate!(indicator::Indicator, input::TS)::Nothing
 #     indicator.data = calculate(indicator, input)
 #     return nothing
 # end
