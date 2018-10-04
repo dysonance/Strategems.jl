@@ -1,5 +1,6 @@
-using Strategems, Temporal, Indicators, Base.Dates
-using Base.Test
+using Strategems, Temporal, Indicators
+using Dates
+using Test
 
 # define universe and gather data
 assets = ["CHRIS/CME_CL1", "CHRIS/CME_RB1"]
