@@ -90,22 +90,6 @@ end
 
 Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.rules)
 
-# define matrix row iterator protocol
-# this allows us to `enumerate(EachRow(M))`
-# thereby getting the count of the iteration as well as the row
-struct EachRow{T<:AbstractMatrix}
-    A::T
-end
-
-Base.first(itr::EachRow) = itr[1,:]
-Base.last(itr::EachRow) = itr[end,:]
-Base.firstindex(::EachRow) = 1
-Base.lastindex(itr::EachRow) = size(itr,1)
-Base.iterate(itr::EachRow) = size(itr, 1) == 0 ? nothing : itr[1,:], 2
-Base.iterate(itr::EachRow, i) = i == lastindex(itr) ? nothing : itr[1,:], i+1
-# Base.next(itr::EachRow, s) = (itr.A[s,:], s+1)
-# Base.done(itr::EachRow, s) = s > size(itr.A,1)
-
 #TODO: more meaningful progres information
 #TODO: parallel processing
 #TODO: streamline this so that it doesnt run so slow (seems to be recompiling at each run)
@@ -147,7 +131,7 @@ function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=t
     end
     combos = get_param_combos(strat.indicator.paramset, n_runs=n_runs)[idx_samples,:]
     strat.results.optimization = zeros(samples,1)
-    for (run, combo) in enumerate(EachRow(combos))
+    for (run, combo) in enumerate([combos[i,:] for i in 1:size(combos,1)])
         verbose ? println("Run $run/$samples") : nothing
         strat.indicator.paramset.arg_defaults = combo
         generate_trades!(strat, verbose=false)
