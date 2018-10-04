@@ -28,7 +28,7 @@ mutable struct Universe
 end
 
 #TODO: ensure type compatibility across variables (specifically with regard to TimeTypes)
-function gather!(universe::Universe; source::Function=Temporal.quandl, verbose::Bool=true)::Void
+function gather!(universe::Universe; source::Function=Temporal.quandl, verbose::Bool=true)::Nothing
     t0 = Vector{Dates.Date}()
     tN = Vector{Dates.Date}()
     @inbounds for asset in universe.assets

@@ -34,7 +34,7 @@ function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
     return all_trades
 end
 
-function generate_trades!(strat::Strategy; args...)::Void
+function generate_trades!(strat::Strategy; args...)::Nothing
     strat.results.trades = generate_trades(strat; args...)
     return nothing
 end
@@ -83,7 +83,7 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
     return result
 end
 
-function backtest!(strat::Strategy; args...)::Void
+function backtest!(strat::Strategy; args...)::Nothing
     strat.results.backtest = backtest(strat; args...)
     return nothing
 end
@@ -128,7 +128,7 @@ function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=tr
 end
 
 # TODO: implement function to edit results member of strat in place
-function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Void
+function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Nothing
     n_runs = get_n_runs(strat.indicator.paramset)
     idx_samples::Vector{Int} = collect(1:n_runs)
     if samples > 0
