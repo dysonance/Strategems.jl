@@ -41,6 +41,8 @@ end
 @testset "Indicator" begin
     global f(x; args...) = Indicators.mama(x; args...)
     global indicator     = Indicator(f, paramset)
+    @test indicator.fun == f
+    @test indicator.paramset == paramset
 end
 
 # define signals that will trigger trading decisions
@@ -48,7 +50,9 @@ end
     @testset "Construct" begin
         global siglong  = @signal MAMA ↑ FAMA
         global sigshort = @signal MAMA ↓ FAMA
-        global sigexit  = @signal MAMA .== FAMA
+        global sigexit  = @signal MAMA == FAMA
+        @test siglong.fun.a == sigshort.fun.a == sigexit.fun.a == :MAMA
+        @test siglong.fun.b == sigshort.fun.b == sigexit.fun.b == :FAMA
     end
 end
 
@@ -59,6 +63,9 @@ end
         global shortrule = @rule sigshort → short 100
         global exitrule  = @rule sigexit → liquidate 1.0
         global rules     = (longrule, shortrule, exitrule)
+        @test longrule.action == long
+        @test shortrule.action == short
+        @test exitrule.action == liquidate
     end
 end
 
