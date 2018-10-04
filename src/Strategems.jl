@@ -1,7 +1,7 @@
 VERSION >= v"0.6-" && __precompile__(true)
 
 module Strategems
-using Base.Dates
+using Dates
 using Temporal
 using Indicators 
 

@@ -37,7 +37,8 @@ The key indicator used in this strategy is John Ehlers's MESA Adaptive Moving Av
 This strategy simply goes long when the *MAMA* crosses over the *FAMA*, and goes short when the *FAMA* crosses over the *MAMA*. Below is an implementation that shows how to set default arguments to the `Indicators.mama` function and run a simple backtest using those parameters, and also define specified ranges over which we might like to see how the strategy behaves under different parameter sets.
 
 ```julia
-using Strategems, Temporal, Indicators, Base.Dates
+using Strategems, Temporal, Indicators
+using Dates
 
 # define universe and gather data
 assets = ["CHRIS/CME_CL1", "CHRIS/CME_RB1"]

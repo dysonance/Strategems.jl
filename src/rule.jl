@@ -16,7 +16,7 @@ macro rule(logic::Expr, args...)
     trigger = :($(logic.args[2]))
     #action = :($(logic.args[3])$((args...)))
     action = :($(logic.args[3]))
-    args = :($(args...))
+    args = :($(args))
     return esc(:(Rule($trigger, $action, $args)))
 end
 
