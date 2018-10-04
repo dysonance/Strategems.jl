@@ -27,11 +27,11 @@ end
 #TODO: add logic whereby the order logic is altered by the type `T` of qty
 # (if T<:Int, order that many *shares*, else if T<:Float64, interpret qty as a fraction of the portfolio at time t)
 
-liquidate(qty::T) where {T<:Real} = qty
+(liquidate(qty::T)::T) where {T<:Real} = qty
 
-long(qty::T) where {T<:Real} = qty
-buy(qty::T) where {T<:Real} = qty
+(long(qty::T)::T) where {T<:Real} = qty
+(buy(qty::T)::T) where {T<:Real} = qty
 
-short(qty::T) where {T<:Real} = qty
-sell(qty::T) where {T<:Real} = qty
+(short(qty::T)::T) where {T<:Real} = qty
+(sell(qty::T)::T) where {T<:Real} = qty
 
