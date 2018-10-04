@@ -96,9 +96,15 @@ Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.rul
 struct EachRow{T<:AbstractMatrix}
     A::T
 end
-Base.start(::EachRow) = 1
-Base.next(itr::EachRow, s) = (itr.A[s,:], s+1)
-Base.done(itr::EachRow, s) = s > size(itr.A,1)
+
+Base.first(itr::EachRow) = itr[1,:]
+Base.last(itr::EachRow) = itr[end,:]
+Base.firstindex(::EachRow) = 1
+Base.lastindex(itr::EachRow) = size(itr,1)
+Base.iterate(itr::EachRow) = size(itr, 1) == 0 ? nothing : itr[1,:], 2
+Base.iterate(itr::EachRow, i) = i == lastindex(itr) ? nothing : itr[1,:], i+1
+# Base.next(itr::EachRow, s) = (itr.A[s,:], s+1)
+# Base.done(itr::EachRow, s) = s > size(itr.A,1)
 
 #TODO: more meaningful progres information
 #TODO: parallel processing
