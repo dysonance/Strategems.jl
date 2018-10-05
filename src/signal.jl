@@ -7,7 +7,6 @@ struct Signal
     fun::Function
     function Signal(switch::Expr)
         @assert typeof(eval(switch.args[1])) <: Function
-        f::Function = eval(switch.args[1])
         a::Symbol = switch.args[2]
         b::Symbol = switch.args[3]
         #pair = eval(switch.args[1])::Function => Tuple{Symbol,Symbol}(switch.args[2]::Symbol, switch.args[3]::Symbol)
@@ -18,6 +17,9 @@ struct Signal
             vec1::Vector = x[a].values[:]
             vec2::Vector = x[b].values[:]
             comp::Function = eval(switch.args[1])
+            if comp == ==
+                comp(x,y) = broadcast(==, x, y)
+            end
             out::BitVector = comp(vec1, vec2)
             return out
         end
