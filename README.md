@@ -70,7 +70,7 @@ indicator     = Indicator(f, paramset)
 # (similarly for the downarrow infix operator for crossing under)
 siglong  = @signal MAMA ↑ FAMA
 sigshort = @signal MAMA ↓ FAMA
-sigexit  = @signal MAMA .== FAMA
+sigexit  = @signal MAMA == FAMA
 
 # define the trading rules
 longrule  = @rule siglong → long 100

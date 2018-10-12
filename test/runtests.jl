@@ -1,7 +1,6 @@
 using Strategems, Temporal, Indicators
 using Dates
 using Test
-using Pkg
 
 # define universe and gather data
 assets = ["Corn"]
