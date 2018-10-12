@@ -83,3 +83,9 @@ end
         @test size(strat.results.optimization,2) == length(arg_names)+1
     end
 end
+
+# test example(s)
+@testset "Examples" begin
+    include("$(joinpath(dirname(pathof(Strategems)), "..", "examples", "mama.jl"))")
+    @test assets == ["CHRIS/CME_CL1", "CHRIS/CME_RB1"]
+end
