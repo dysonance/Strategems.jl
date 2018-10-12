@@ -13,7 +13,7 @@ notifications:
   email: false
 after_success:
   # push coverage results to Coveralls
-  - julia -e 'cd(Pkg.dir("Strategems")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  - julia -e 'using Pkg, Strategems; Pkg.add("Coverage"); using Coverage; cd(joinpath(dirname(pathof(Strategems)), "..")); Coveralls.submit(Coveralls.process_folder())'
   # push coverage results to Codecov
-  - julia -e 'cd(Pkg.dir("Strategems")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  - julia -e 'using Pkg, Strategems; Pkg.add("Coverage"); using Coverage; cd(joinpath(dirname(pathof(Strategems)), "..")); Codecov.submit(Codecov.process_folder())'
 

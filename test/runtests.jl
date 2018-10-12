@@ -11,19 +11,6 @@ assets = ["Corn"]
         @test universe.assets == assets
     end
     @testset "Gather" begin
-        # function datasource(asset::String; save_downloads::Bool=true)::TS
-        #     savedata_path = Pkg.dir("Strategems", "data/$asset.csv")
-        #     if isfile(savedata_path)
-        #         return Temporal.tsread(savedata_path)
-        #     else
-        #         X = quandl(asset)
-        #         if save_downloads
-        #             Temporal.tswrite(X, savedata_path)
-        #         end
-        #         return X
-        #     end
-        # end
-        # gather!(universe, source=datasource)
         gather!(universe, source=(asset)->Temporal.tsread(joinpath(dirname(pathof(Temporal)), "..", "data/$asset.csv")))
         @test length(setdiff(assets, collect(keys(universe.data)))) == 0
     end

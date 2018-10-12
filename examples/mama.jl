@@ -4,7 +4,7 @@ using Strategems, Temporal, Indicators, Dates, Pkg
 assets = ["CHRIS/CME_CL1", "CHRIS/CME_RB1"]
 universe = Universe(assets)
 function datasource(asset::String; save_downloads::Bool=true)::TS
-    savedata_path = Pkg.dir("Strategems", "data/$asset.csv")
+    savedata_path = joinpath(dirname(pathof(Strategems)), "..", "data", "$asset.csv")
     if isfile(savedata_path)
         return Temporal.tsread(savedata_path)
     else
