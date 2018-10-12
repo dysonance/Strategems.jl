@@ -1,6 +1,4 @@
-using Strategems, Temporal, Indicators
-using Dates
-using Test
+using Strategems, Temporal, Indicators, Dates, Pkg
 
 # define universe and gather data
 assets = ["CHRIS/CME_CL1", "CHRIS/CME_RB1"]
@@ -30,7 +28,7 @@ indicator = Indicator(f, paramset)
 # define signals that will trigger trading decisions
 siglong = @signal MAMA ↑ FAMA
 sigshort = @signal MAMA ↓ FAMA
-sigexit = @signal MAMA .== FAMA
+sigexit = @signal MAMA == FAMA
 
 # define the trading rules
 longrule = @rule siglong → long 100
