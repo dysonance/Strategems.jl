@@ -1,14 +1,14 @@
 using Strategems, Temporal, Indicators, Dates, Pkg
 
 # define universe and gather data
-assets = ["test/CME_CL1", "test/CME_RB1"]
+assets = ["CME_CL1", "CME_RB1"]
 universe = Universe(assets)
 function datasource(asset::String; save_downloads::Bool=true)::TS
-    savedata_path = joinpath(dirname(pathof(Strategems)), "..", "data", "$asset.csv")
+    savedata_path = joinpath(dirname(pathof(Strategems)), "..", "data", "test", "$asset.csv")
     if isfile(savedata_path)
         return Temporal.tsread(savedata_path)
     else
-        X = quandl(asset)
+        X = quandl("CHRIS/$asset")
         if save_downloads
             Temporal.tswrite(X, savedata_path)
         end

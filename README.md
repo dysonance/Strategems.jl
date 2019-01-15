@@ -41,7 +41,7 @@ using Strategems, Temporal, Indicators
 using Dates
 
 # define universe and gather data
-assets = ["test/CME_CL1", "test/CME_RB1"]
+assets = ["CME_CL1", "CME_RB1"]
 universe = Universe(assets)
 function datasource(asset::String; save_downloads::Bool=true)::TS
     savedata_path = joinpath(dirname(pathof(Strategems)), "..", "data", "$asset.csv")
