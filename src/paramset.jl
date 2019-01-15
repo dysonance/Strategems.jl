@@ -67,7 +67,7 @@ function generate_dict(ps::ParameterSet; arg_values::Vector=ps.arg_defaults)::Di
     return out_dict
 end
 
-function show(io::IO, ps::ParameterSet)::Void
+function show(io::IO, ps::ParameterSet)::Nothing
     print("Parameters:")
     @inbounds for i in 1:ps.n_args
         print("\n    ($i) $(ps.arg_names[i])  →  $(ps.arg_defaults[i])  ∈  {$(string(ps.arg_ranges[i]))} :: $(ps.arg_types[i])")
