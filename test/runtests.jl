@@ -73,5 +73,5 @@ end
 # test example(s)
 @testset "Examples" begin
     include("$(joinpath(dirname(pathof(Strategems)), "..", "examples", "mama.jl"))")
-    @test assets == ["CHRIS/CME_CL1", "CHRIS/CME_RB1"]
+    @test assets == ["test/CME_CL1", "test/CME_RB1"]
 end
