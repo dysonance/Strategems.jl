@@ -40,15 +40,29 @@ function summarize_results(strat::Strategy)
         holding = asset_result[:Pos]
         profit = asset_result[:PNL]
         # TODO: determine if would best be determined by the px_close field
-        value = cl(asset_result) * holding
-        holding.fields = [Symbol(asset)]
-        value.fields = [Symbol(asset)]
-        profit.fields = [Symbol(asset)]
+        value = asset_result[:Close] * holding
         holdings = [holdings holding]
         values = [values value]
         profits = [profits profit]
     end
-    weights = values / apply(values, 1, fun=sum)
+    # data cleaning - field assignment and missing value replacement
+    holdings.fields = Symbol.(strat.universe.assets)
+    profits.fields = Symbol.(strat.universe.assets)
+    values.fields = Symbol.(strat.universe.assets)
+    holdings.values[isnan.(holdings.values)] .= 0.0
+    values.values[isnan.(values.values)] .= 0.0
     profits.values[isnan.(profits.values)] .= 0.0
+    # portfolio weights, net exposure, and leverage calculations
+    weights = values / apply(values, 1, fun=sum)
+    weights.fields = Symbol.(strat.universe.assets)
+    exposure = apply(weights, 1, fun=sum)
+    leverage = apply(weights, 1, fun=x->(sum(abs.(x))))
+    weights = [weights exposure leverage]
+    weights.fields[end-1:end] = [:Exposure, :Leverage]
+    # compute other temporal totals and return
+    profits = [profits apply(profits, 1, fun=sum)]
+    profits.fields[end] = :Total
+    values = [values apply(values, 1, fun=sum)]
+    values.fields[end] = :Total
     return weights, holdings, values, profits
 end
