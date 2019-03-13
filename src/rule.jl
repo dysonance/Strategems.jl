@@ -2,6 +2,8 @@
 Type and methods facilitating simple but effective syntax interface for defining trading rules
 =#
 
+import Base: show
+
 #TODO: figure out how to make this a function that interfaces with the portfolio & account objects
 struct Rule{S,F,T}
     trigger::S
@@ -21,3 +23,10 @@ macro rule(logic::Expr, args...)
 end
 
 →(a,b) = a ? b() : nothing
+
+function show(io::IO, rule::Rule)
+    action_string = titlecase(split(string(rule.action), '.')[2])
+    arg_string = titlecase(string(rule.args...))
+    trigger_string = string(rule.trigger.switch)
+    print(io, "$action_string $arg_string when $trigger_string")
+end

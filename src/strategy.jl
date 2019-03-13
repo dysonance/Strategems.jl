@@ -1,8 +1,13 @@
-using Random
-
 #=
 Type definition and methods containing the overarching backtesting object fueling the engine
 =#
+
+using Random
+
+import Base: show
+
+const TABWIDTH = 4
+const TAB = ' ' ^ TABWIDTH
 
 mutable struct Strategy
     universe::Universe
@@ -15,6 +20,22 @@ mutable struct Strategy
                       rules::Tuple{Vararg{Rule}},
                       portfolio::Portfolio=Portfolio(universe))
         return new(universe, indicator, rules, portfolio, Results())
+    end
+end
+
+function show(io::IO, strat::Strategy)
+    println(io, strat.indicator.paramset)
+    println(io, "# Rules:")
+    for rule in strat.rules
+        println(io, TAB, rule)
+    end
+    println()
+    println(io, "# Universe:")
+    for (i, asset) in enumerate(strat.universe.assets  )
+        println(io, TAB, "Asset $i:", TAB, asset)
+        data = strat.universe.data[asset]
+        println(io, TAB, TAB, "Range:", TAB, data.index[1], " to ", data.index[end])
+        println(io, TAB, TAB, "Fields:", TAB, join(String.(data.fields), "  "))
     end
 end
 

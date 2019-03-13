@@ -1,3 +1,6 @@
+
+import Base: show
+
 mutable struct Indicator
     fun::Function
     paramset::ParameterSet
@@ -27,5 +30,7 @@ function generate_dict(universe::Universe, indicator::Indicator)::Dict{String,In
     return indicators
 end
 
-
-#TODO: show method
+# TODO: add information about the calculation function
+function show(io::IO, indicator::Indicator)
+    show(io, indicator.paramset)
+end
