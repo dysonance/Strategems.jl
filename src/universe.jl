@@ -2,6 +2,8 @@
 Type and methods to simplify data sourcing and management of the universe of tradable assets
 =#
 
+import Base: show
+
 const SEPARATORS = ['/', '_', '.']
 
 # function guess_tickers(assets::Vector{String})::Vector{Symbol}
@@ -53,4 +55,12 @@ function get_overall_index(universe::Universe)::Vector{Date}
     return idx
 end
 
-#TODO: show method
+function show(io::IO, universe::Universe)
+    println(io, "# Universe:")
+    for (i, asset) in enumerate(universe.assets  )
+        println(io, TAB, "Asset $i:", TAB, asset)
+        data = universe.data[asset]
+        println(io, TAB, TAB, "Range:", TAB, data.index[1], " to ", data.index[end])
+        println(io, TAB, TAB, "Fields:", TAB, join(String.(data.fields), "  "))
+    end
+end

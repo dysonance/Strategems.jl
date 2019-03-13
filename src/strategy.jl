@@ -30,13 +30,7 @@ function show(io::IO, strat::Strategy)
         println(io, TAB, rule)
     end
     println()
-    println(io, "# Universe:")
-    for (i, asset) in enumerate(strat.universe.assets  )
-        println(io, TAB, "Asset $i:", TAB, asset)
-        data = strat.universe.data[asset]
-        println(io, TAB, TAB, "Range:", TAB, data.index[1], " to ", data.index[end])
-        println(io, TAB, TAB, "Fields:", TAB, join(String.(data.fields), "  "))
-    end
+    show(io, strat.universe)
 end
 
 function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
