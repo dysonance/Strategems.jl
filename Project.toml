@@ -1,7 +1,7 @@
 name = "Strategems"
-uuid = "f837295c-19af-11e9-2d0b-a9a78a7de4d8"
-authors = ["Jacob Amos <jacob.amos@appliedacademics.com>"]
-version = "0.1.0"
+uuid = "054b7d4e-9922-5ad3-8b46-7dbe695a681f"
+authors = ["Jacob Amos <jamos125@gmail.com>"]
+version = "0.2.0"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
