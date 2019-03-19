@@ -65,8 +65,8 @@ end
     end
     @testset "Optimize" begin
         optimize!(strat, samples=10)
-        @test size(strat.results.optimization,1) == 10
-        @test size(strat.results.optimization,2) == length(arg_names)+1
+        @test size(strat.backtest.optimization,1) == 10
+        @test size(strat.backtest.optimization,2) == length(arg_names)+1
     end
 end
 

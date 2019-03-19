@@ -84,7 +84,7 @@ backtest!(strat)
 optimize!(strat, samples=0)  # randomly sample the parameter space (0 -> use all combinations)
 
 # cumulative pnl for each combination of the parameter space
-strat.results.optimization
+strat.backtest.optimization
 9801×3 Array{Float64,2}:
 0.01  0.01   -3194.62
 0.01  0.02   -4098.25
@@ -101,7 +101,7 @@ strat.results.optimization
 # visualizing results with the Plots.jl package
 using Plots
 gr()
-(x, y, z) = (strat.results.optimization[:,i] for i in 1:3)
+(x, y, z) = (strat.backtest.optimization[:,i] for i in 1:3)
 surface(x, y, z)
 ```
 

@@ -21,7 +21,7 @@ module Strategems
         # order
         AbstractOrder, MarketOrder, LimitOrder, StopOrder, liquidate, long, buy, short, sell,
         # strategy results
-        Results,
+        Backtest,
         # summary statistic calculations
         cum_pnl,
         # strategies
@@ -34,7 +34,7 @@ module Strategems
     include("model/rule.jl")
     include("model/portfolio.jl")
     include("model/order.jl")
-    include("model/results.jl")
+    include("model/backtest.jl")
     include("model/strategy.jl")
     include("compute/backtest.jl")
 

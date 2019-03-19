@@ -12,12 +12,12 @@ mutable struct Strategy
     indicator::Indicator
     rules::Tuple{Vararg{Rule}}
     portfolio::Portfolio
-    results::Results
+    backtest::Backtest
     function Strategy(universe::Universe,
                       indicator::Indicator,
                       rules::Tuple{Vararg{Rule}},
                       portfolio::Portfolio=Portfolio(universe))
-        return new(universe, indicator, rules, portfolio, Results())
+        return new(universe, indicator, rules, portfolio, Backtest())
     end
 end
 
@@ -36,7 +36,7 @@ function summarize_results(strat::Strategy)
     values = TS()
     profits = TS()
     for asset in strat.universe.assets
-        asset_result = strat.results.backtest[asset]
+        asset_result = strat.backtest.backtest[asset]
         holding = asset_result[:Pos]
         profit = asset_result[:PNL]
         # TODO: determine if would best be determined by the px_close field

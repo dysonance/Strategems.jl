@@ -17,18 +17,18 @@ function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
 end
 
 function generate_trades!(strat::Strategy; args...)::Nothing
-    strat.results.trades = generate_trades(strat; args...)
+    strat.backtest.trades = generate_trades(strat; args...)
     return nothing
 end
 
 function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle, verbose::Bool=true)::Dict{String,TS{Float64}}
-    if isempty(strat.results.trades)
+    if isempty(strat.backtest.trades)
         generate_trades!(strat, verbose=verbose)
     end
     result = Dict{String,TS}()
     for asset in strat.universe.assets
         verbose ? print("Running backtest for asset $asset...") : nothing
-        trades = strat.results.trades[asset].values
+        trades = strat.backtest.trades[asset].values
         N = size(trades, 1)
         summary_ts = strat.universe.data[asset]
         #TODO: add setindex! method for TS objects using Symbol and Vector to assign inplace
@@ -66,7 +66,7 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
 end
 
 function backtest!(strat::Strategy; args...)::Nothing
-    strat.results.backtest = backtest(strat; args...)
+    strat.backtest.backtest = backtest(strat; args...)
     return nothing
 end
 
@@ -92,7 +92,7 @@ function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=tr
         strat.indicator.paramset.arg_defaults = combo
         generate_trades!(strat, verbose=false)
         backtest!(strat, verbose=false; args...)
-        result[run] = summary_fun(strat.results.backtest)
+        result[run] = summary_fun(strat.backtest.backtest)
     end
     # prevent out-of-scope alteration of strat object
     strat = strat_save
@@ -112,15 +112,15 @@ function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=t
         samples = n_runs
     end
     combos = get_param_combos(strat.indicator.paramset, n_runs=n_runs)[idx_samples,:]
-    strat.results.optimization = zeros(samples,1)
+    strat.backtest.optimization = zeros(samples,1)
     for (run, combo) in enumerate([combos[i,:] for i in 1:size(combos,1)])
         verbose ? println("Run $run/$samples") : nothing
         strat.indicator.paramset.arg_defaults = combo
         generate_trades!(strat, verbose=false)
         backtest!(strat, verbose=false; args...)
-        strat.results.optimization[run] = summary_fun(strat.results)
+        strat.backtest.optimization[run] = summary_fun(strat.backtest)
     end
-    strat.results.optimization = [combos strat.results.optimization]
+    strat.backtest.optimization = [combos strat.backtest.optimization]
     return nothing
 end
 
