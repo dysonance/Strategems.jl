@@ -1,4 +1,4 @@
-VERSION >= v"0.6-" && __precompile__(true)
+__precompile__(true)
 
 module Strategems
     using Dates
@@ -27,16 +27,15 @@ module Strategems
         # strategies
         Strategy, generate_trades, generate_trades!, backtest, backtest!, optimize, optimize!, summarize_results
 
-    include("universe.jl")
-    include("paramset.jl")
-    include("indicator.jl")
-    include("signal.jl")
-    include("rule.jl")
-    include("portfolio.jl")
-    include("order.jl")
-    include("results.jl")
-    include("stats.jl")
-    include("strategy.jl")
-    include("backtest.jl")
+    include("model/universe.jl")
+    include("model/paramset.jl")
+    include("model/indicator.jl")
+    include("model/signal.jl")
+    include("model/rule.jl")
+    include("model/portfolio.jl")
+    include("model/order.jl")
+    include("model/results.jl")
+    include("model/strategy.jl")
+    include("compute/backtest.jl")
 
 end
