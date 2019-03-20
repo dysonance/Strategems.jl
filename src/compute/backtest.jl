@@ -21,6 +21,7 @@ function generate_trades!(strat::Strategy; args...)::Nothing
     return nothing
 end
 
+#TODO: generalize this logic to incorporate order types
 function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle, verbose::Bool=true)::Dict{String,TS{Float64}}
     if isempty(strat.backtest.trades)
         generate_trades!(strat, verbose=verbose)
@@ -32,9 +33,6 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
         trades = strat.backtest.trades[asset].values
         N = size(trades, 1)
         summary_ts = strat.universe.data[asset]
-        #TODO: add setindex! method for TS objects using Symbol and Vector to assign inplace
-        #TODO: generalize this logic to incorporate order types
-        #FIXME: generalize this logic to use the actual rules (this is a temporary quickfix)
         trade_price = summary_ts[px_trade].values
         close_price = summary_ts[px_close].values
         pos = zeros(Float64, N)
@@ -44,11 +42,8 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
             for (i,rule) in enumerate(strat.rules)
                 if trades[t-1,i] != 0
                     do_trade = true
-                    #TODO: fill out this logic with the various order types
                     order_side = rule.action in (long,buy) ? 1 : rule.action in (short,sell) ? -1 : 0
-                    #TODO: add logic here for the int vs. float argument type to order function
                     (order_qty,) = rule.args
-                    #if isa(order_qty, Int); else FIXME: portfolio adjustment logic; end
                     pos[t] = order_qty * order_side
                     pnl[t] = pos[t] * (close_price[t] - trade_price[t])
                 end

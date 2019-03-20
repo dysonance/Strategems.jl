@@ -1,6 +1,4 @@
 using Strategems, Temporal, Indicators, Plots
-using Dates
-using Test
 
 # define universe and gather data
 assets = ["EOD/AAPL", "EOD/MCD", "EOD/JPM", "EOD/MMM", "EOD/XOM"]
@@ -18,16 +16,13 @@ function datasource(asset::String; save_downloads::Bool=true)::TS
             end
             Temporal.tswrite(X, path)
         end
-        # adj_open = X[:Open] * X[:Adj_Close]/X[:Close]
-        # adj_open.fields = [:Adj_Open]
-        # X = [X adj_open]
         return X
     end
 end
 
 gather!(universe, source=datasource)
 
-# define indicator and parameters
+# define indicator and parameter space
 function fun(x::TS; args...)::TS
     close_prices = x[:Adj_Close]
     moving_average = sma(close_prices; args...)
@@ -35,9 +30,6 @@ function fun(x::TS; args...)::TS
     output.fields = [:Adj_Close, :MA]
     return output
 end
-
-# TODO: define method for when only one parameter is needed where it automatically puts things in vectors
-# (so that you could call this by doing `ParameterSet(:n, 50)`)
 indicator = Indicator(fun, ParameterSet([:n], [50], [10:5:200]))
 
 # define signals
@@ -54,6 +46,6 @@ strat = Strategy(universe, indicator, (longrule, shortrule))
 backtest!(strat, px_trade=:Adj_Open, px_close=:Adj_Close)
 weights, holdings, values, profits = summarize_results(strat)
 
-plot(holdings, layout=(length(assets),1), color=(1:length(assets))')
-plot(weights[:,1:length(assets)], layout=(length(assets),1), color=(1:length(assets))')
-plot(cumsum(profits), layout=(fld(length(assets)+1,2),2), color=(1:length(assets)+1)')
+# plot(holdings, layout=(length(assets),1), color=(1:length(assets))')
+# plot(weights[:,1:length(assets)], layout=(length(assets),1), color=(1:length(assets))')
+# plot(cumsum(profits), layout=(fld(length(assets)+1,2),2), color=(1:length(assets)+1)')
