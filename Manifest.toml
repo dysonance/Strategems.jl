@@ -25,9 +25,9 @@ version = "0.8.0"
 
 [[Indicators]]
 deps = ["Random", "Statistics", "Temporal", "Test"]
-git-tree-sha1 = "0734fc9e3c33f59bccea03e891ad36b2ce14e328"
+git-tree-sha1 = "8502074e3967a914969cd139f15841fa0706479c"
 uuid = "70c4c096-89a6-5ec6-8236-da8aa3bd86fd"
-version = "0.4.0"
+version = "0.5.0"
 
 [[IniFile]]
 deps = ["Test"]
@@ -118,9 +118,9 @@ uuid = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [[Temporal]]
 deps = ["Dates", "HTTP", "JSON", "Printf", "Random", "RecipesBase", "Statistics", "Test"]
-git-tree-sha1 = "61d7059e2853e2f375629ca96e7272a4d7281b44"
+git-tree-sha1 = "e46b146e40093cce858f6d730ba08877cee6d9a3"
 uuid = "a110ec8f-48c8-5d59-8f7e-f91bc4cc0c3d"
-version = "0.5.5"
+version = "0.6.0"
 
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]

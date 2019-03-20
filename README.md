@@ -37,11 +37,10 @@ The key indicator used in this strategy is John Ehlers's MESA Adaptive Moving Av
 This strategy simply goes long when the *MAMA* crosses over the *FAMA*, and goes short when the *FAMA* crosses over the *MAMA*. Below is an implementation that shows how to set default arguments to the `Indicators.mama` function and run a simple backtest using those parameters, and also define specified ranges over which we might like to see how the strategy behaves under different parameter sets.
 
 ```julia
-using Strategems, Temporal, Indicators
-using Dates
+using Strategems, Indicators, Temporal, Dates
 
 # define universe and gather data
-assets = ["CME_CL1", "CME_RB1"]
+assets = ["CHRIS/CME_CL1", "CHRIS/CME_RB1"]
 universe = Universe(assets)
 function datasource(asset::String; save_downloads::Bool=true)::TS
     savedata_path = joinpath(dirname(pathof(Strategems)), "..", "data", "$asset.csv")
@@ -85,18 +84,6 @@ optimize!(strat, samples=0)  # randomly sample the parameter space (0 -> use all
 
 # cumulative pnl for each combination of the parameter space
 strat.backtest.optimization
-9801×3 Array{Float64,2}:
-0.01  0.01   -3194.62
-0.01  0.02   -4098.25
-0.01  0.03    5178.82
-0.01  0.04    6267.24
-0.01  0.05   10996.5
-⋮
-0.99  0.95  -14949.8
-0.99  0.96  -16431.6
-0.99  0.97  -16333.3
-0.99  0.98  -17081.7
-0.99  0.99  -17057.4
 
 # visualizing results with the Plots.jl package
 using Plots
