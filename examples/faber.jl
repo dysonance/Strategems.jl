@@ -52,8 +52,9 @@ shortrule = @rule shortsignal → liquidate 100
 strat = Strategy(universe, indicator, (longrule, shortrule))
 
 backtest!(strat, px_trade=:Adj_Open, px_close=:Adj_Close)
-weights, holdings, values, profits = summarize_results(strat)
+optimize!(strat, px_trade=:Adj_Open, px_close=:Adj_Close)
+# weights, holdings, values, profits = summarize_results(strat)
 
-plot(holdings, layout=(length(assets),1), color=(1:length(assets))')
-plot(weights[:,1:length(assets)], layout=(length(assets),1), color=(1:length(assets))')
-plot(cumsum(profits), layout=(fld(length(assets)+1,2),2), color=(1:length(assets)+1)')
+# plot(holdings, layout=(length(assets),1), color=(1:length(assets))')
+# plot(weights[:,1:length(assets)], layout=(length(assets),1), color=(1:length(assets))')
+# plot(cumsum(profits), layout=(fld(length(assets)+1,2),2), color=(1:length(assets)+1)')

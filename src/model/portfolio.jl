@@ -1,23 +1,31 @@
-#=
-type and methods to track the evolution of a strategy's securities portfolio composition
-=#
 
 mutable struct Portfolio
-    quantity::Matrix{Float64}
-    weight::Matrix{Float64}
-    entry_price::Matrix{Float64}
-    close_price::Matrix{Float64}
-    pnl::Matrix{Float64}
-    idx::Vector{<:TimeType}
-    function Portfolio(universe::Universe)
-        idx = get_overall_index(universe)
-        quantity = weight = entry_price = close_price = pnl =
-            zeros(Float64, length(idx), length(universe.assets))
-        return new(quantity, weight, entry_price, close_price, pnl, idx)
+    holdings::TS
+    values::TS
+    weights::TS
+    pnl::TS
+    nav::TS
+    function Portfolio(universe::Universe, initial_value::Float64=1e6)
+        N = length(universe.index)
+        holdings = values = weights = pnl =
+            TS(zeros(N, length(universe.assets)), universe.index, universe.assets)
+        nav = TS(zeros(N, 2) .+ initial_value, universe.index, [:Total, :Cash])
+        return new(holdings, values, weights, pnl, nav)
     end
 end
 
-#function update_portfolio!(portfolio::Portfolio, order::Order, universe::Universe)
-#    i = findfirst(portfolio.idx .> order.time)
-#    quantity[i]
-#end
+function update!(portfolio::Portfolio, asset::String, timestamp::TimeType, price::Float64)::Nothing
+    i = findfirst(portfolio.nav.index .== timestamp)
+    j = findfirst(portfolio.holdings.fields .== Symbol(asset))
+    portfolio.holdings.values[i,j] = portfolio.holdings.values[i-1,j]
+    portfolio.values.values[i,j] = portfolio.holdings.values[i,j]*price
+    portfolio.pnl.values[i,j] = portfolio.values.values[i,j] - portfolio.values.values[i-1,j]
+    update!(portfolio, timestamp)
+    return nothing
+end
+
+function update!(portfolio::Portfolio, timestamp::TimeType)::Nothing
+    portfolio.nav.values[timestamp,1] = sum(portfolio.values.values[timestamp,:]) .+ portfolio.nav.values[timestamp,2]
+    portfolio.weights.values[timestamp,:] = portfolio.weights.values[timestamp,:] ./ portfolio.nav.values[timestamp,1]
+    return nothing
+end

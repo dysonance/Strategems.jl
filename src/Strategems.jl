@@ -18,8 +18,10 @@ module Strategems
         Signal, prep_signal, ↑, ↓, @signal,
         # rules
         Rule, @rule, →,
+        # trades
+        Trade, queue_orders,
         # portfolios
-        Portfolio,#, update_portfolio!,
+        Portfolio, update!,
         # order
         AbstractOrder, MarketOrder, LimitOrder, StopOrder, liquidate, long, buy, short, sell,
         # strategy results
@@ -38,6 +40,7 @@ module Strategems
     include("model/order.jl")
     include("model/backtest.jl")
     include("model/strategy.jl")
+    include("model/trade.jl")
     include("compute/backtest.jl")
     include("compute/optimize.jl")
 
