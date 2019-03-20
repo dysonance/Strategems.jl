@@ -38,7 +38,7 @@ end
 
 # TODO: define method for when only one parameter is needed where it automatically puts things in vectors
 # (so that you could call this by doing `ParameterSet(:n, 50)`)
-indicator = Indicator(fun, ParameterSet([:n], [50]))
+indicator = Indicator(fun, ParameterSet([:n], [50], [10:5:200]))
 
 # define signals
 longsignal = @signal Adj_Close ↑ MA

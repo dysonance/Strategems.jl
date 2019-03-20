@@ -18,45 +18,12 @@ mutable struct ParameterSet
     end
 end
 
-function get_n_runs(ps::ParameterSet)::Int
+function count_runs(ps::ParameterSet)::Int
     n_runs = 1
     @inbounds for i in 1:ps.n_args
         n_runs *= length(ps.arg_ranges[i])
     end
     return n_runs
-end
-
-function get_param_combos(ps::ParameterSet; n_runs::Int=get_n_runs(ps))::Matrix
-    combos = Matrix{Any}(undef, n_runs, ps.n_args)
-    P = 1
-    for j in 1:ps.n_args
-        n_vals = length(ps.arg_ranges[j])
-        n_reps = ceil(Int, n_runs/(n_vals*P))
-        for i in 1:n_vals
-            first_row = ceil(Int, n_vals/P)*(i-1)+1
-            step_by = ceil(Int, n_runs/(n_vals*n_reps))
-            last_row = first_row + n_vals*step_by - 1
-            rows = first_row:step_by:last_row
-            arg_val = ps.arg_ranges[j][i]
-            combos[rows,j] .= arg_val
-        end
-        P *= n_vals
-    end
-    return combos
-end
-
-function get_run_params(ps::ParameterSet; n_runs::Int=get_n_runs(ps))::Vector{Dict{Symbol,Any}}
-    n_runs = get_n_runs(ps)
-    combos::Matrix{Any} = get_param_combos(ps, n_runs=n_runs)
-    arg_dicts = Vector{Dict{Symbol,Any}}(n_runs)
-    for i in 1:size(combos,1)
-        tmp_dict = Dict{Symbol,Any}()
-        for j in 1:size(combos,2)
-            tmp_dict[ps.arg_names[j]] = combos[i,j]
-        end
-        arg_dicts[i] = tmp_dict
-    end
-    return arg_dicts
 end
 
 function generate_dict(ps::ParameterSet; arg_values::Vector=ps.arg_defaults)::Dict{Symbol,Any}
@@ -72,4 +39,14 @@ function show(io::IO, ps::ParameterSet)::Nothing
     @inbounds for i in 1:ps.n_args
         println(io, TAB, "($i) $(ps.arg_names[i])  →  $(ps.arg_defaults[i])  ∈  {$(string(ps.arg_ranges[i]))} :: $(ps.arg_types[i])")
     end
+end
+
+function generate_combinations(ps::ParameterSet)
+    A = collect(Iterators.product(ntuple(i->ps.arg_ranges[i], length(ps.arg_ranges))...))
+    B = A[:]
+    T = Tuple(Array{arg_type}(undef, size(B,1)) for arg_type in ps.arg_types)
+    for j in 1:length(ps.arg_ranges), i in 1:size(B,1)
+        T[j][i] = B[i][j]
+    end
+    return hcat(T...)
 end

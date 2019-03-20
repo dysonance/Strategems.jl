@@ -4,12 +4,14 @@ module Strategems
     using Dates
     using Temporal
     using Indicators 
+    using Random
+    using ProgressMeter
 
     export
         # universe definitions
         Universe, gather!, get_overall_index,
         # parameter sets
-        ParameterSet, get_n_runs, get_param_combos, get_run_params, generate_dict,
+        ParameterSet, count_runs, generate_combinations, generate_dict,
         # indicators
         Indicator, calculate,
         # signals
@@ -37,5 +39,6 @@ module Strategems
     include("model/backtest.jl")
     include("model/strategy.jl")
     include("compute/backtest.jl")
+    include("compute/optimize.jl")
 
 end

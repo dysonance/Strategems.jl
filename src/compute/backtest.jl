@@ -1,4 +1,3 @@
-using Random
 
 function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
     all_trades = Dict{String,TS}()
@@ -69,58 +68,3 @@ function backtest!(strat::Strategy; args...)::Nothing
     strat.backtest.backtest = backtest(strat; args...)
     return nothing
 end
-
-Base.copy(strat::Strategy) = Strategy(strat.universe, strat.indicator, strat.rules)
-
-#TODO: more meaningful progres information
-#TODO: parallel processing
-#TODO: streamline this so that it doesnt run so slow (seems to be recompiling at each run)
-function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Matrix
-    strat_save = copy(strat)
-    n_runs = get_n_runs(strat.indicator.paramset)
-    idx_samples::Vector{Int} = collect(1:n_runs)
-    if samples > 0
-        Random.seed!(seed)
-        idx_samples = rand(idx_samples, samples)
-    else
-        samples = n_runs
-    end
-    combos = get_param_combos(strat.indicator.paramset, n_runs=n_runs)[idx_samples,:]
-    result = zeros(samples)
-    for (run, combo) in enumerate(idx_samples)
-        verbose ? println("Run $run/$samples") : nothing
-        strat.indicator.paramset.arg_defaults = combo
-        generate_trades!(strat, verbose=false)
-        backtest!(strat, verbose=false; args...)
-        result[run] = summary_fun(strat.backtest.backtest)
-    end
-    # prevent out-of-scope alteration of strat object
-    strat = strat_save
-    return result
-end
-
-# TODO: implement function to edit results member of strat in place
-function optimize!(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=true, summary_fun::Function=cum_pnl, args...)::Nothing
-    n_runs = get_n_runs(strat.indicator.paramset)
-    idx_samples::Vector{Int} = collect(1:n_runs)
-    if samples > 0
-        if seed >= 0
-            Random.seed!(seed)
-        end
-        idx_samples = rand(idx_samples, samples)
-    else
-        samples = n_runs
-    end
-    combos = get_param_combos(strat.indicator.paramset, n_runs=n_runs)[idx_samples,:]
-    strat.backtest.optimization = zeros(samples,1)
-    for (run, combo) in enumerate([combos[i,:] for i in 1:size(combos,1)])
-        verbose ? println("Run $run/$samples") : nothing
-        strat.indicator.paramset.arg_defaults = combo
-        generate_trades!(strat, verbose=false)
-        backtest!(strat, verbose=false; args...)
-        strat.backtest.optimization[run] = summary_fun(strat.backtest)
-    end
-    strat.backtest.optimization = [combos strat.backtest.optimization]
-    return nothing
-end
-
