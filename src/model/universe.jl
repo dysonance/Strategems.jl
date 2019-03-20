@@ -18,7 +18,7 @@ mutable struct Universe
         @inbounds for asset in assets
             data[asset] = TS()
         end
-        index = union((data[asset].index for asset in assets)...)
+        index = sort(union((data[asset].index for asset in assets)...))
         return new(assets, data, from, thru, index)
     end
 end
@@ -37,6 +37,7 @@ function gather!(universe::Universe; source::Function=Temporal.quandl, verbose::
     end
     universe.from = max(minimum(t0), universe.from)
     universe.thru = min(maximum(tN), universe.thru)
+    universe.index = sort(union((universe.data[asset].index for asset in universe.assets)...))
     return nothing
 end
 
