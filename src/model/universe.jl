@@ -2,6 +2,8 @@
 Type and methods to simplify data sourcing and management of the universe of tradable assets
 =#
 
+using ProgressMeter
+
 import Base: show
 
 const SEPARATORS = ['/', '_', '.']
@@ -33,13 +35,13 @@ end
 function gather!(universe::Universe; source::Function=Temporal.quandl, verbose::Bool=true)::Nothing
     t0 = Vector{Dates.Date}()
     tN = Vector{Dates.Date}()
+    verbose ? progress = Progress(length(universe.assets), 1, "Gathering Universe Data") : nothing
     @inbounds for asset in universe.assets
-        verbose ? print("Sourcing data for asset $asset...") : nothing
+        verbose ? next!(progress) : nothing
         indata = source(asset)
         push!(t0, indata.index[1])
         push!(tN, indata.index[end])
         universe.data[asset] = indata
-        verbose ? print("Done.\n") : nothing
     end
     universe.from = max(minimum(t0), universe.from)
     universe.thru = min(maximum(tN), universe.thru)

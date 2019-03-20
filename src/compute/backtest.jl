@@ -1,8 +1,10 @@
+using ProgressMeter
 
 function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
     all_trades = Dict{String,TS}()
+    verbose ? progress = Progress(length(strat.universe.assets), 1, "Generating Trades") : nothing
     for asset in strat.universe.assets
-        verbose ? print("Generating trades for asset $asset...") : nothing
+        verbose ? next!(progress) : nothing
         trades = TS(falses(size(strat.universe.data[asset],1), length(strat.rules)),
                     strat.universe.data[asset].index)
         local indicator_data = calculate(strat.indicator, strat.universe.data[asset])
@@ -10,7 +12,6 @@ function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
             trades[:,i] = rule.trigger.fun(indicator_data)
         end
         all_trades[asset] = trades
-        verbose ? print("Done.\n") : nothing
     end
     return all_trades
 end
@@ -25,8 +26,9 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
         generate_trades!(strat, verbose=verbose)
     end
     result = Dict{String,TS}()
+    verbose ? progress = Progress(length(strat.universe.assets), 1, "Running Backtest") : nothing
     for asset in strat.universe.assets
-        verbose ? print("Running backtest for asset $asset...") : nothing
+        verbose ? next!(progress) : nothing
         trades = strat.backtest.trades[asset].values
         N = size(trades, 1)
         summary_ts = strat.universe.data[asset]
@@ -59,7 +61,6 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Set
         end
         summary_ts = [summary_ts TS([pos pnl cumsum(pnl)], summary_ts.index, [:Pos,:PNL,:CumPNL])]
         result[asset] = summary_ts
-        verbose ? print("Done.\n") : nothing
     end
     return result
 end
