@@ -49,6 +49,9 @@ function datasource(asset::String; save_downloads::Bool=true)::TS
     else
         X = quandl(asset)
         if save_downloads
+            if !isdir(dirname(savedata_path))
+                mkdir(dirname(savedata_path))
+            end
             Temporal.tswrite(X, savedata_path)
         end
         return X
@@ -104,4 +107,3 @@ surface(x, y, z)
 * Define a more diverse set of order types
     - Limit orders
     * Stop orders
-
