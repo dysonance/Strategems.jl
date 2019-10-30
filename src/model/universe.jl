@@ -62,7 +62,11 @@ function show(io::IO, universe::Universe)
     for (i, asset) in enumerate(universe.assets  )
         println(io, TAB, "Asset $i:", TAB, asset)
         data = universe.data[asset]
-        println(io, TAB, TAB, "Range:", TAB, data.index[1], " to ", data.index[end])
-        println(io, TAB, TAB, "Fields:", TAB, join(String.(data.fields), "  "))
+        if isempty(data)
+            println(io, TAB, TAB, "(No Data Gathered)")
+        else
+            println(io, TAB, TAB, "Range:", TAB, data.index[1], " to ", data.index[end])
+            println(io, TAB, TAB, "Fields:", TAB, join(String.(data.fields), "  "))
+        end
     end
 end

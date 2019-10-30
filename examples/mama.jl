@@ -1,4 +1,4 @@
-using Strategems, Temporal, Indicators, Dates, Pkg
+using Strategems, Temporal, Indicators, Dates
 
 # define universe and gather data
 assets = ["CME_CL1", "CME_RB1"]

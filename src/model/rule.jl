@@ -25,7 +25,7 @@ end
 →(a,b) = a ? b() : nothing
 
 function show(io::IO, rule::Rule)
-    action_string = titlecase(split(string(rule.action), '.')[2])
+    action_string = titlecase(split(string(rule.action), '.')[end])
     arg_string = titlecase(string(rule.args...))
     trigger_string = string(rule.trigger.switch)
     print(io, "$action_string $arg_string when $trigger_string")
