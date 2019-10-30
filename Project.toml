@@ -1,7 +1,7 @@
 name = "Strategems"
 uuid = "054b7d4e-9922-5ad3-8b46-7dbe695a681f"
 authors = ["Jacob Amos <jamos125@gmail.com>"]
-version = "0.2.0"
+version = "0.3.0"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
@@ -11,3 +11,6 @@ ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Temporal = "a110ec8f-48c8-5d59-8f7e-f91bc4cc0c3d"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+julia = "^1.2"
