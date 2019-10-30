@@ -38,12 +38,9 @@ function summarize_results(strat::Strategy)
     for asset in strat.universe.assets
         asset_result = strat.backtest.backtest[asset]
         holding = asset_result[:Pos]
-        profit = asset_result[:PNL]
-        # TODO: determine if would best be determined by the px_close field
-        value = asset_result[:Close] * holding
         holdings = [holdings holding]
-        values = [values value]
-        profits = [profits profit]
+        values = [values cl(asset_result) * holding]
+        profits = [profits asset_result[:PNL]]
     end
     # data cleaning - field assignment and missing value replacement
     holdings.fields = Symbol.(strat.universe.assets)
