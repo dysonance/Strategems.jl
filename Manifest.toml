@@ -25,9 +25,9 @@ version = "0.8.6"
 
 [[Indicators]]
 deps = ["Random", "Statistics", "Temporal", "Test"]
-git-tree-sha1 = "97089d5f56335a77b25f10a34bb0fe6bfd3daf06"
+git-tree-sha1 = "106dd0e2876f4cd299fad7f5d30003e1dfbeb640"
 uuid = "70c4c096-89a6-5ec6-8236-da8aa3bd86fd"
-version = "0.6.0"
+version = "0.7.0"
 
 [[IniFile]]
 deps = ["Test"]
@@ -122,10 +122,10 @@ deps = ["LinearAlgebra", "SparseArrays"]
 uuid = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [[Temporal]]
-deps = ["Dates", "HTTP", "JSON", "Printf", "Random", "RecipesBase", "Statistics", "Test"]
-git-tree-sha1 = "ab2b14f510cd2a068974c9dc654ad8e743582dc1"
+deps = ["Dates", "HTTP", "JSON", "Pkg", "Printf", "Random", "RecipesBase", "Statistics", "Test"]
+git-tree-sha1 = "31560aae24d7fa64dd75aaa4a74a81ac7cd28576"
 uuid = "a110ec8f-48c8-5d59-8f7e-f91bc4cc0c3d"
-version = "0.6.1"
+version = "0.7.0"
 
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
