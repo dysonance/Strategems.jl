@@ -1,4 +1,4 @@
-import ProgressMeter: Progress, next!
+using ProgressMeter
 
 function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
     all_trades = Dict{String,TS}()
@@ -16,54 +16,51 @@ function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
     return all_trades
 end
 
-function backtest!(strat::Strategy; trade_on::Symbol=:Open, settle_on::Symbol=:Settle, verbose::Bool=true)
-    #FIXME types
-    trades_by_rule = generate_trades(strat, verbose=verbose)
-    index = get_overall_index(strat.universe)
+function generate_trades!(strat::Strategy; args...)::Nothing
+    strat.backtest.trades = generate_trades(strat; args...)
+    return nothing
+end
+
+#TODO: generalize this logic to incorporate order types
+function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle, verbose::Bool=true)::Dict{String,TS{Float64}}
+    if isempty(strat.backtest.trades)
+        generate_trades!(strat, verbose=verbose)
+    end
+    result = Dict{String,TS}()
     verbose ? progress = Progress(length(strat.universe.assets), 1, "Running Backtest") : nothing
-    N = length(index)
-    for (j, asset) in enumerate(strat.universe.assets)
+    for asset in strat.universe.assets
         verbose ? next!(progress) : nothing
-        trades = trades_by_rule[asset]
-        n = size(trades, 1)
-        px_trade = strat.universe.data[asset][trade_on].values
-        px_close = strat.universe.data[asset][settle_on].values
-        order_waiting = false
-        pnl = 0.0
-        qty = 0.0
-        m2m = 0.0
-        txn = 0.0
-        for i in 1:n
-            if order_waiting
-                dp = order_waiting ? px_close[i]-px_trade[i] : px_close[i]-px_close[i-1]
-                pnl = qty * dp - m2m
-                m2m = qty * m2m
-                t = N-n+1
-                strat.portfolio.txn.values[t,j] = txn
-                strat.portfolio.qty.values[t,j] = qty
-                strat.portfolio.pnl.values[t,j] = pnl
-                strat.portfolio.m2m.values[t,j] = m2m
-            end
-            for (r,rule) in enumerate(strat.rules)
-                if trades.values[i,r] != 0
-                    order_waiting = true
-                    if rule.action == liquidate
-                        dir = -sign(qty)
-                        txn = round(rule.args[1] * qty * dir)
-                    else
-                        dir = rule.action in (long,buy) ? 1 : rule.action in (short,sell) ? -1 : 0
-                        txn = rule.args[1]
-                    end
-                    qty += txn * dir
+        trades = strat.backtest.trades[asset].values
+        N = size(trades, 1)
+        summary_ts = strat.universe.data[asset]
+        trade_price = summary_ts[px_trade].values
+        close_price = summary_ts[px_close].values
+        pos = zeros(Float64, N)
+        pnl = zeros(Float64, N)
+        do_trade = false
+        for t in 2:N
+            for (i,rule) in enumerate(strat.rules)
+                if trades[t-1,i] != 0
+                    do_trade = true
+                    order_side = rule.action in (long,buy) ? 1 : rule.action in (short,sell) ? -1 : 0
+                    (order_qty,) = rule.args
+                    pos[t] = order_qty * order_side
+                    pnl[t] = pos[t] * (close_price[t] - trade_price[t])
                 end
             end
+            if !do_trade
+                pos[t] = pos[t-1]
+                pnl[t] = pos[t] * (close_price[t]-close_price[t-1])
+            end
+            do_trade = false
         end
+        summary_ts = [summary_ts TS([pos pnl cumsum(pnl)], summary_ts.index, [:Pos,:PNL,:CumPNL])]
+        result[asset] = summary_ts
     end
-    # update total portfolio value at each step
-    for t in 1:N
-        cap = strat.portfolio.cap.values[t] + sum(strat.portfolio.pnl.values[t])
-        m2m = strat.portfolio.m2m.values[t,:]
-        strat.portfolio.cap.values[t] = cap
-        strat.portfolio.wts.values[t,:] = m2m ./ cap
-    end
+    return result
+end
+
+function backtest!(strat::Strategy; args...)::Nothing
+    strat.backtest.backtest = backtest(strat; args...)
+    return nothing
 end

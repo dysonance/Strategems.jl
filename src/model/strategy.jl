@@ -12,11 +12,12 @@ mutable struct Strategy
     indicator::Indicator
     rules::Tuple{Vararg{Rule}}
     portfolio::Portfolio
+    backtest::Backtest
     function Strategy(universe::Universe,
                       indicator::Indicator,
                       rules::Tuple{Vararg{Rule}},
                       portfolio::Portfolio=Portfolio(universe))
-        return new(universe, indicator, rules, portfolio)
+        return new(universe, indicator, rules, portfolio, Backtest())
     end
 end
 
@@ -35,9 +36,11 @@ function summarize_results(strat::Strategy)
     values = TS()
     profits = TS()
     for asset in strat.universe.assets
-        holdings = [holdings strat.portfolio.qty[Symbol(asset)]]
-        values = [values strat.portfolio.m2m[Symbol(asset)]]
-        profits = [profits strat.portfolio.pnl[Symbol(asset)]]
+        asset_result = strat.backtest.backtest[asset]
+        holding = asset_result[:Pos]
+        holdings = [holdings holding]
+        values = [values cl(asset_result) * holding]
+        profits = [profits asset_result[:PNL]]
     end
     # data cleaning - field assignment and missing value replacement
     holdings.fields = Symbol.(strat.universe.assets)
