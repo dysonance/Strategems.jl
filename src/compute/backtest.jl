@@ -28,14 +28,25 @@ function backtest!(strat::Strategy; trade_on::Symbol=:Open, settle_on::Symbol=:S
         n = size(trades, 1)
         px_trade = strat.universe.data[asset][trade_on].values
         px_close = strat.universe.data[asset][settle_on].values
+        order_waiting = false
         pnl = 0.0
         qty = 0.0
         m2m = 0.0
         txn = 0.0
-        px = px_close[1]
-        for i in 2:n
+        for i in 1:n
+            if order_waiting
+                dp = order_waiting ? px_close[i]-px_trade[i] : px_close[i]-px_close[i-1]
+                pnl = qty * dp - m2m
+                m2m = qty * m2m
+                t = N-n+1
+                strat.portfolio.txn.values[t,j] = txn
+                strat.portfolio.qty.values[t,j] = qty
+                strat.portfolio.pnl.values[t,j] = pnl
+                strat.portfolio.m2m.values[t,j] = m2m
+            end
             for (r,rule) in enumerate(strat.rules)
-                if trades.values[i-1,r] != 0
+                if trades.values[i,r] != 0
+                    order_waiting = true
                     if rule.action == liquidate
                         dir = -sign(qty)
                         txn = round(rule.args[1] * qty * dir)
@@ -46,14 +57,6 @@ function backtest!(strat::Strategy; trade_on::Symbol=:Open, settle_on::Symbol=:S
                     qty += txn * dir
                 end
             end
-            px = px_close[i]
-            pnl = qty * px - m2m
-            m2m = qty * m2m
-            t = N-n+1
-            strat.portfolio.txn.values[t,j] = txn
-            strat.portfolio.qty.values[t,j] = qty
-            strat.portfolio.pnl.values[t,j] = pnl
-            strat.portfolio.m2m.values[t,j] = m2m
         end
     end
     # update total portfolio value at each step
