@@ -1,19 +1,23 @@
-#=
-type and methods to track the evolution of a strategy's securities portfolio composition
-=#
+# type and methods to track the evolution of a strategy's securities portfolio composition
 
 mutable struct Portfolio
-    quantity::Matrix{Float64}
-    weight::Matrix{Float64}
-    entry_price::Matrix{Float64}
-    close_price::Matrix{Float64}
-    pnl::Matrix{Float64}
-    idx::Vector{<:TimeType}
-    function Portfolio(universe::Universe)
-        idx = get_overall_index(universe)
-        quantity = weight = entry_price = close_price = pnl =
-            zeros(Float64, length(idx), length(universe.assets))
-        return new(quantity, weight, entry_price, close_price, pnl, idx)
+    txn::TS
+    qty::TS
+    wts::TS
+    pnl::TS
+    m2m::TS
+    cap::TS
+    function Portfolio(universe::Universe, initial_capital::Float64=1e6)
+        index = get_overall_index(universe)
+        columns = Symbol.(universe.assets)
+        blanks = zeros(length(index), length(columns))
+        txn = TS(blanks, index, columns)
+        qty = TS(blanks, index, columns)
+        wts = TS(blanks, index, columns)
+        pnl = TS(blanks, index, columns)
+        m2m = TS(blanks, index, columns)
+        cap = TS(zeros(length(index)).+initial_capital, index, [:NAV])
+        return new(txn, qty, wts, pnl, m2m, cap)
     end
 end
 

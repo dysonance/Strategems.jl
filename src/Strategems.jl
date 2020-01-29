@@ -22,12 +22,10 @@ module Strategems
         Portfolio,#, update_portfolio!,
         # order
         AbstractOrder, MarketOrder, LimitOrder, StopOrder, liquidate, long, buy, short, sell,
-        # strategy results
-        Backtest,
         # summary statistic calculations
         cum_pnl,
         # strategies
-        Strategy, generate_trades, generate_trades!, backtest, backtest!, optimize, optimize!, summarize_results
+        Strategy, generate_trades, generate_trades!, backtest!, optimize, optimize!, summarize_results
 
     include("model/universe.jl")
     include("model/paramset.jl")
@@ -36,7 +34,6 @@ module Strategems
     include("model/rule.jl")
     include("model/portfolio.jl")
     include("model/order.jl")
-    include("model/backtest.jl")
     include("model/strategy.jl")
     include("compute/backtest.jl")
     include("compute/optimize.jl")
