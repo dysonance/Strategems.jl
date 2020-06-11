@@ -9,7 +9,7 @@ module Strategems
 
     export
         # universe definitions
-        Universe, gather!, get_overall_index,
+        Universe, gather!, gather, get_overall_index,
         # parameter sets
         ParameterSet, count_runs, generate_combinations, generate_dict,
         # indicators

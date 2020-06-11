@@ -14,21 +14,29 @@ const SEPARATORS = ['/', '_', '.']
 #     return tickers
 # end
 
-mutable struct Universe
+struct Universe
     assets::Vector{String}
     # tickers::Vector{Symbol}
     data::Dict{String,TS}
     from::TimeType
     thru::TimeType
-    function Universe(assets::Vector{String}, from::TimeType=Dates.Date(0), thru::TimeType=Dates.today())
+    function Universe(assets::Vector{String}, data::Dict{String, TS}, from::TimeType=Dates.Date(0), thru::TimeType=Dates.today())
         @assert assets == unique(assets)
         # tickers = guess_tickers(assets)
+        return new(assets, data, from, thru)
+    end
+end
+
+function Universe(assets::Vector{String}, from::TimeType = Dates.Date(0), thru::TimeType=Dates.today())
+        @assert assets == unique(assets)
+        # tickers = guess_tickers(assets)
+        
         data = Dict{String,TS}()
         @inbounds for asset in assets
             data[asset] = TS()
         end
-        return new(assets, data, from, thru)
-    end
+
+        Universe(assets, data, from, thru)
 end
 
 #TODO: ensure type compatibility across variables (specifically with regard to TimeTypes)
@@ -46,6 +54,23 @@ function gather!(universe::Universe; source::Function=Temporal.quandl, verbose::
     universe.from = max(minimum(t0), universe.from)
     universe.thru = min(maximum(tN), universe.thru)
     return nothing
+end
+
+function gather(assets::Vector{String}; source::Function=Temporal.quandl, verbose::Bool=true)::Universe
+    t0 = Vector{Dates.Date}()
+    tN = Vector{Dates.Date}()
+    data = Dict{String,TS}()
+    verbose ? progress = Progress(length(assets), 1, "Gathering Universe Data") : nothing
+    @inbounds for asset in assets
+        verbose ? next!(progress) : nothing
+        indata = source(asset)
+        push!(t0, indata.index[1])
+        push!(tN, indata.index[end])
+        data[asset] = indata
+    end
+    from = minimum(t0)
+    thru = maximum(tN)
+    Universe(assets, data, from, thru)
 end
 
 #FIXME: make robust to other time types

@@ -16,10 +16,10 @@ function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
     return all_trades
 end
 
-function generate_trades!(strat::Strategy; args...)::Nothing
-    strat.backtest.trades = generate_trades(strat; args...)
-    return nothing
-end
+# function generate_trades!(strat::Strategy; args...)::Nothing
+#     strat.backtest.trades = generate_trades(strat; args...)
+#     return nothing
+# end
 
 #TODO: generalize this logic to incorporate order types
 function backtest(strat::Strategy; px_trade::Symbol=:Open,
@@ -66,7 +66,7 @@ function backtest(strat::Strategy; px_trade::Symbol=:Open,
     return result
 end
 
-function backtest!(strat::Strategy; args...)::Nothing
-    strat.backtest.backtest = backtest(strat; args...)
-    return nothing
-end
+# function backtest!(strat::Strategy; args...)::Nothing
+#     strat.backtest.backtest = backtest(strat; args...)
+#     return nothing
+# end
