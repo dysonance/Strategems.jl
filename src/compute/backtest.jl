@@ -22,15 +22,21 @@ function generate_trades!(strat::Strategy; args...)::Nothing
 end
 
 #TODO: generalize this logic to incorporate order types
-function backtest(strat::Strategy; px_trade::Symbol=:Open, px_close::Symbol=:Settle, verbose::Bool=true)::Dict{String,TS{Float64}}
+function backtest(strat::Strategy; px_trade::Symbol=:Open,
+                                   px_close::Symbol=:Settle,
+                                   verbose::Bool=true,
+                                   )::Dict{String,TS{Float64}}
     if isempty(strat.backtest.trades)
-        generate_trades!(strat, verbose=verbose)
+        all_trades = generate_trades(strat, verbose=verbose)
+    else
+        all_trades = strat.backtest.trades
     end
+
     result = Dict{String,TS}()
     verbose ? progress = Progress(length(strat.universe.assets), 1, "Running Backtest") : nothing
     for asset in strat.universe.assets
         verbose ? next!(progress) : nothing
-        trades = strat.backtest.trades[asset].values
+        trades = all_trades[asset].values
         N = size(trades, 1)
         summary_ts = strat.universe.data[asset]
         trade_price = summary_ts[px_trade].values

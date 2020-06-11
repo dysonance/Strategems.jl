@@ -22,3 +22,12 @@ function cum_pnl(results::Backtest)::Float64
     end
     return result
 end
+
+function cum_pnl(results::Dict{String, TS{Float64}})::Float64
+    result = 0.0
+    @inbounds for val in values(results)
+        pnl::Vector = val[:PNL].values[:]
+        result += sum(pnl)
+    end
+    return result
+end

@@ -1,4 +1,6 @@
 using Random, ProgressMeter
+using SharedArrays
+import Base.Threads.@threads
 
 import Base: copy
 
@@ -15,15 +17,26 @@ function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=tr
         sample_index = collect(1:samples)
     end
     combos = generate_combinations(strat.indicator.paramset)[sample_index,:]
-    optimization = zeros(samples, 1)
+    optimization = convert(SharedArray, zeros(samples, 1))
     verbose ? progress = Progress(length(sample_index), 1, "Optimizing Backtest") : nothing
+
+    @threads for i in 1:length(sample_index)
+        verbose ? next!(progress) : nothing
+        strat.indicator.paramset.arg_defaults = combos[i,:]
+        bt = backtest(strat, verbose=false; args...)
+        optimization[i] = summary_fun(bt)
+    end
+
+    #=
     for (i, combo) in enumerate(sample_index)
         verbose ? next!(progress) : nothing
         strat.indicator.paramset.arg_defaults = combos[i,:]
-        generate_trades!(strat, verbose=false)
+        # generate_trades!(strat, verbose=false)
         backtest!(strat, verbose=false; args...)
         optimization[i] = summary_fun(strat.backtest)
     end
+    =#
+
     # prevent out-of-scope alteration of strat object
     strat = original
     return [combos optimization]
