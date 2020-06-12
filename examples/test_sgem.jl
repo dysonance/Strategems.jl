@@ -60,5 +60,6 @@ function vis(opt)
     surface(x, y, z)
 end
 
-run()
+strat, opt = run(1000)
+vis(opt)
 return nothing

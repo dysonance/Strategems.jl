@@ -32,7 +32,7 @@ end
 
 #TODO: generalize this logic to incorporate order types
 function backtest(strat::Strategy;
-                  arg_values::Union{Vector, Nothing},
+                  arg_values::Union{Vector, Nothing}=nothing,
                   px_trade::Symbol=:Open,
                   px_close::Symbol=:Settle,
                   verbose::Bool=true)::Dict{String,TS{Float64}}
