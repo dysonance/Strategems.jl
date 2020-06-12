@@ -16,14 +16,19 @@ function optimize(strat::Strategy; samples::Int=0, seed::Int=0, verbose::Bool=tr
         samples = count_runs(strat.indicator.paramset)
         sample_index = collect(1:samples)
     end
-    combos = generate_combinations(strat.indicator.paramset)[sample_index,:]
+    all_combos = generate_combinations(strat.indicator.paramset)
+
+    # select a subset of all combinations based on `sample_index`
+    combos = all_combos[sample_index,:]
+
     optimization = convert(SharedArray, zeros(samples, 1))
     verbose ? progress = Progress(length(sample_index), 1, "Optimizing Backtest") : nothing
 
     @threads for i in 1:length(sample_index)
         verbose ? next!(progress) : nothing
-        strat.indicator.paramset.arg_defaults = combos[i,:]
-        bt = backtest(strat, verbose=false; args...)
+        # strat.indicator.paramset.arg_defaults[:] = combos[i,:]
+        argv = convert(Vector, combos[i, :])
+        bt = backtest(strat, arg_values=argv, verbose=false; args...)
         optimization[i] = summary_fun(bt)
     end
 

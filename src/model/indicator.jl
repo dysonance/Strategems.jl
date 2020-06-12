@@ -14,8 +14,8 @@ function Indicator(fun::Function, paramset::ParameterSet)
     return Indicator(fun, paramset, TS())
 end
 
-function calculate(indicator::Indicator, input::TS)::TS
-    return indicator.fun(input; generate_dict(indicator.paramset)...)
+function calculate(indicator::Indicator, input::TS; arg_values::Vector)::TS
+    return indicator.fun(input; generate_dict(indicator.paramset, arg_values)...)
 end
 
 # function calculate!(indicator::Indicator, input::TS)::Nothing

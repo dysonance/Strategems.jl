@@ -1,13 +1,22 @@
 using ProgressMeter
 
-function generate_trades(strat::Strategy; verbose::Bool=true)::Dict{String,TS}
+function generate_trades(strat::Strategy; arg_values::Union{Vector, Nothing},
+                         verbose::Bool=true)::Dict{String,TS}
+
+    if isnothing(arg_values)
+        arg_values = strat.indicator.paramset.arg_defaults
+    end
+
     all_trades = Dict{String,TS}()
     verbose ? progress = Progress(length(strat.universe.assets), 1, "Generating Trades") : nothing
+
     for asset in strat.universe.assets
         verbose ? next!(progress) : nothing
         trades = TS(falses(size(strat.universe.data[asset],1), length(strat.rules)),
                     strat.universe.data[asset].index)
-        local indicator_data = calculate(strat.indicator, strat.universe.data[asset])
+
+        local indicator_data = calculate(strat.indicator, strat.universe.data[asset], arg_values=arg_values)
+
         for (i,rule) in enumerate(strat.rules);
             trades[:,i] = rule.trigger.fun(indicator_data)
         end
@@ -22,12 +31,18 @@ end
 # end
 
 #TODO: generalize this logic to incorporate order types
-function backtest(strat::Strategy; px_trade::Symbol=:Open,
-                                   px_close::Symbol=:Settle,
-                                   verbose::Bool=true,
-                                   )::Dict{String,TS{Float64}}
+function backtest(strat::Strategy;
+                  arg_values::Union{Vector, Nothing},
+                  px_trade::Symbol=:Open,
+                  px_close::Symbol=:Settle,
+                  verbose::Bool=true)::Dict{String,TS{Float64}}
+
+    if isnothing(arg_values)
+        arg_values = convert(Vector, strat.indicator.paramset.arg_defaults)
+    end
+
     if isempty(strat.backtest.trades)
-        all_trades = generate_trades(strat, verbose=verbose)
+        all_trades = generate_trades(strat, arg_values=arg_values, verbose=verbose)
     else
         all_trades = strat.backtest.trades
     end

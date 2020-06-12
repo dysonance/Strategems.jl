@@ -46,11 +46,11 @@ function run(samples::Int64=0)
 
     # run strategy
     strat = Strategy(universe, indicator, rules)
-    results = backtest(strat)
+    # results = backtest(strat)
     opt = optimize(strat, samples=samples)  # randomly sample the parameter space (0 -> use all combinations)
 
     # cumulative pnl for each combination of the parameter space
-    (strat, results, opt)
+    (strat, opt)
 end
 
 # visualizing results with the Plots.jl package

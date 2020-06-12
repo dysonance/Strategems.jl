@@ -7,7 +7,7 @@ import Base: show
 const TABWIDTH = 4
 const TAB = ' ' ^ TABWIDTH
 
-mutable struct Strategy
+struct Strategy
     universe::Universe
     indicator::Indicator
     rules::Tuple{Vararg{Rule}}
