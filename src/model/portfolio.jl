@@ -2,7 +2,7 @@
 type and methods to track the evolution of a strategy's securities portfolio composition
 =#
 
-mutable struct Portfolio
+struct Portfolio
     quantity::Matrix{Float64}
     weight::Matrix{Float64}
     entry_price::Matrix{Float64}

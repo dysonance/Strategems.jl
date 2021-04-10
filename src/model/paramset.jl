@@ -1,6 +1,6 @@
 import Base.show
 
-mutable struct ParameterSet
+struct ParameterSet
     arg_names::Vector{Symbol}
     arg_defaults::Vector
     arg_ranges::Vector
@@ -26,7 +26,7 @@ function count_runs(ps::ParameterSet)::Int
     return n_runs
 end
 
-function generate_dict(ps::ParameterSet; arg_values::Vector=ps.arg_defaults)::Dict{Symbol,Any}
+function generate_dict(ps::ParameterSet, arg_values::Vector)::Dict{Symbol,Any}
     out_dict = Dict{Symbol,Any}()
     for j in 1:ps.n_args
         out_dict[ps.arg_names[j]] = arg_values[j]

@@ -41,7 +41,6 @@ using Strategems, Indicators, Temporal, Dates
 
 # define universe and gather data
 assets = ["CHRIS/CME_CL1", "CHRIS/CME_RB1"]
-universe = Universe(assets)
 function datasource(asset::String; save_downloads::Bool=true)::TS
     savedata_path = joinpath(dirname(pathof(Strategems)), "..", "data", "$asset.csv")
     if isfile(savedata_path)
@@ -57,7 +56,7 @@ function datasource(asset::String; save_downloads::Bool=true)::TS
         return X
     end
 end
-gather!(universe, source=datasource)
+universe = gather(assets, source=datasource)
 
 # define indicators and parameter space
 arg_names     = [:fastlimit, :slowlimit]
@@ -82,8 +81,8 @@ rules     = (longrule, shortrule, exitrule)
 
 # run strategy
 strat = Strategy(universe, indicator, rules)
-backtest!(strat)
-optimize!(strat, samples=0)  # randomly sample the parameter space (0 -> use all combinations)
+bt = backtest(strat)
+opt = optimize(strat, samples=0)  # randomly sample the parameter space (0 -> use all combinations)
 
 # cumulative pnl for each combination of the parameter space
 strat.backtest.optimization
@@ -91,7 +90,7 @@ strat.backtest.optimization
 # visualizing results with the Plots.jl package
 using Plots
 gr()
-(x, y, z) = (strat.backtest.optimization[:,i] for i in 1:3)
+(x, y, z) = (opt[:,i] for i in 1:3)
 surface(x, y, z)
 ```
 

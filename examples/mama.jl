@@ -15,7 +15,7 @@ function datasource(asset::String; save_downloads::Bool=true)::TS
         return X
     end
 end
-gather!(universe, source=datasource)
+universe = gather(assets, source=datasource)
 
 # define indicators and parameter space
 arg_names = [:fastlimit, :slowlimit]
@@ -38,5 +38,5 @@ rules = (longrule, shortrule, exitrule)
 
 # run strategy
 strat = Strategy(universe, indicator, rules)
-backtest!(strat)
-optimize!(strat, samples=10)
+bt = backtest(strat)
+opt = optimize(strat, samples=10)

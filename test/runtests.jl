@@ -6,11 +6,11 @@ using Test
 assets = ["Corn"]
 @testset "Universe" begin
     @testset "Construct" begin
-        global universe = Universe(assets)
-        @test universe.assets == assets
+        univ = Universe(assets)
+        @test univ.assets == assets
     end
     @testset "Gather" begin
-        gather!(universe, source=(asset)->Temporal.tsread(joinpath(dirname(pathof(Temporal)), "..", "data/$asset.csv")))
+        global universe = gather(assets, source=(asset)->Temporal.tsread(joinpath(dirname(pathof(Temporal)), "..", "data/$asset.csv")))
         @test length(setdiff(assets, collect(keys(universe.data)))) == 0
     end
 end
@@ -61,12 +61,12 @@ end
         global strat = Strategy(universe, indicator, rules)
     end
     @testset "Backtest" begin
-        backtest!(strat)
+        bt = backtest(strat)
     end
     @testset "Optimize" begin
-        optimize!(strat, samples=10)
-        @test size(strat.backtest.optimization,1) == 10
-        @test size(strat.backtest.optimization,2) == length(arg_names)+1
+        opt = optimize(strat, samples=10)
+        @test size(opt, 1) == 10
+        @test size(opt ,2) == length(arg_names)+1
     end
 end
 
